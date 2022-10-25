@@ -14,7 +14,7 @@ Shell access - root/root
 
 
 ### Build firmware 
-```
+
 ./make_pure.sh
 After successful compilation, the SD image will be located in buildroot/output/images/Pure_XX_XX_202X.gz.
 
