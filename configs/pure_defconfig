@@ -3,7 +3,6 @@
 # Buildroot 2022.08-338-g3f0ee52908 Configuration
 #
 BR2_HAVE_DOT_CONFIG=y
-BR2_EXTERNAL_PURE_PATH="/opt/pure-buildroot"
 BR2_HOST_GCC_AT_LEAST_4_9=y
 BR2_HOST_GCC_AT_LEAST_5=y
 BR2_HOST_GCC_AT_LEAST_6=y
@@ -286,7 +285,6 @@ BR2_BZCAT="bzcat"
 BR2_XZCAT="xzcat"
 BR2_LZCAT="lzip -d -c"
 BR2_TAR_OPTIONS=""
-BR2_DEFCONFIG="/mnt/sdb1/last_buildroot/buildroot/configs/beaglebone_defconfig"
 BR2_DL_DIR="$(TOPDIR)/dl"
 BR2_HOST_DIR="$(BASE_DIR)/host"
 
@@ -4046,7 +4044,7 @@ BR2_TARGET_UBOOT_CUSTOM_PATCH_DIR=""
 #
 
 #
-# Buildroot for PURE  (in /opt/pure-buildroot)
+# Buildroot for PURE  
 #
 BR2_PACKAGE_ROONREADY=y
 BR2_PACKAGE_NAA=y
