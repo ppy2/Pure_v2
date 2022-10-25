@@ -1,0 +1,10 @@
+#!/bin/sh
+
+case "$1" in
+  start)
+    echo "Starting httpd..."
+    /usr/sbin/httpd -h /var/www
+    ;;
+  *)
+    exit 1
+esac

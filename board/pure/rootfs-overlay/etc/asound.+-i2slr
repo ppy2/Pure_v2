@@ -1,0 +1,41 @@
+pcm.!default {
+    type plug
+    slave {
+    pcm botic-split
+    channels 2
+}
+}
+
+pcm.botic-split {
+type route;
+slave {
+pcm "hw:0,0"
+channels 4
+}
+ttable.0.0 -1;
+ttable.1.1 -1;
+ttable.0.2 1;
+ttable.1.3 1;
+}
+
+      
+pcm.rawjack {
+    type jack
+    playback_ports {
+        0 system:playback_1
+        1 system:playback_2
+    }
+    capture_ports {
+        0 system:capture_1
+        1 system:capture_2
+    }
+}
+
+pcm.jack {
+    type plug
+    slave { pcm "rawjack" }
+    hint {
+ 	description "JACK Audio Connection Kit"
+    }
+}
+

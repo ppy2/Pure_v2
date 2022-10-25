@@ -1,0 +1,476 @@
+html {
+	width: 100%;
+	height: 100%;
+	padding: 0px;
+	margin: 0px;
+}
+body {
+	color: #d1d1d1;
+	text-shadow: 0px 2px 2px #1b1b1b;
+	font-size: 12em;
+	font-family: 'Roboto', 'Arial', sans-serif;
+	min-height: 100%;
+	background-color: #292929;
+	width: 100%;
+	padding: 0px;
+	margin: 0px;
+}
+
+#fullContainer{
+	height: 100%;
+    width: 100%;
+    display: table;
+}
+
+#middleContainer{
+	position: relative;
+	display: table-cell;
+    height: 100%;
+	width: 100%;
+    vertical-align: middle;
+}
+
+#mainContent{
+	width: 50%;
+	height: 65%;
+	margin-left: auto;
+	margin-right: auto;
+	background-color: #646464;
+	/*filter: blur(10px);*/
+	border-radius: 8px;
+	position: relative;
+	z-index: 100;
+	-webkit-box-shadow: 0px 0px 15px rgba(0,0,0,0.65), inset 0px 0px 220px rgba(0,0,0,0.45);
+	-moz-box-shadow: 0px 0px 15px rgba(0,0,0,0.65), inset 0px 0px 220px rgba(0,0,0,0.45);
+	-o-box-shadow: 0px 0px 15px rgba(0,0,0,0.65), inset 0px 0px 220px rgba(0,0,0,0.45);
+	box-shadow: 0px 0px 15px rgba(0,0,0,0.65), inset 0px 0px 220px rgba(0,0,0,0.45);
+}
+
+#mainContent td{
+	padding: 0px;
+	margin: 0px;
+}
+
+#optionsTop {
+    height: 52px;
+}
+
+#optionsTop .active{
+	color: ff8100;
+	border-bottom: 1px solid #ff8100;
+}
+
+#optionsTop td{
+	width: 25%;
+	text-align: center;
+	border-bottom: 1px solid #414141;
+}
+#iconContainer {
+	display: table;
+	table-layout: fixed;
+	width: 80%;
+	height: 55%;
+    margin: auto;
+}
+
+#iconContainer div.row{
+	display: table-row;
+}
+
+#protocolSel div.table-row{
+	display: table;
+	width: 100%;
+	text-align: center;
+}
+
+#iconContainer div.cell{
+	display: table-cell;
+	vertical-align: top;
+	text-align: center;
+}
+
+.cell:hover .unselButtonText {
+	color: white;
+}
+
+.cell:hover .unselButton {
+	filter: brightness(130%) drop-shadow(0px 2px 1px #1b1b1b);
+}
+
+#systemSel {
+	display: none;
+	margin: auto;
+	height: 80%;
+	width: 80%;
+}
+
+#systemSel span{
+}
+
+.buttonSpacer {
+	padding: 0px 10px 0 0;
+	float: left;
+}
+
+#systemSel input#emmc, #systemSel input#wifi, #systemSel input#hostname, #systemSel input#update, #systemSel span.unselKernelText, #systemSel span.unselOutputText, #superuserSel input#eraseEmmc{
+	text-shadow: 0px 2px 2px #1b1b1b;
+	font-size: inherit;
+	font-family: 'Roboto', 'Arial', sans-serif;
+	padding: 0 !important;
+	display: block;
+    border: none;
+	
+    background: none;
+	color: #fe8101;
+	padding: 10px 10px 0 0;
+}
+
+#systemSel input#emmc{
+	padding: 10px 0 0 0 !important;
+}
+
+#systemSel input#fname{
+	background: none;
+    border: none;
+    border-bottom: 1px dashed rgb(64 64 64);
+    color: #d1d1d1;
+    text-shadow: 0px 2px 2px #1b1b1b;
+    font-size: 1em;
+    font-family: 'Roboto', 'Arial', sans-serif;
+}
+
+#systemSel input.selKernelText, #systemSel input.selOutputText{
+	text-shadow: 0px 2px 2px #1b1b1b;
+	font-size: inherit;
+	font-family: 'Roboto', 'Arial', sans-serif;
+    border: none;
+	padding: 0;
+    background: none;
+    color: #d1d1d1;
+}
+
+#systemSel input.selKernelText:hover, #systemSel input.selOutputText:hover{
+	text-shadow: 0px 2px 2px #1b1b1b;
+	margin: 0px 0px -1px 0;
+	border-bottom: 1px solid #d1d1d1;
+	-webkit-box-shadow:0px 2px 2px -2px #1b1b1b;
+	-moz-box-shadow:0px 2px 2px -2px #1b1b1b;
+	box-shadow:0px 2px 3px -2px #1b1b1b;
+}
+
+#systemSel input#emmc:hover, #systemSel input#update:hover {
+	text-shadow: 0px 2px 2px #1b1b1b;
+	margin: 0px 0px -1px 0;
+	border-bottom: 1px solid #fe8101;
+	-webkit-box-shadow:0px 2px 2px -2px #1b1b1b;
+	-moz-box-shadow:0px 2px 2px -2px #1b1b1b;
+	box-shadow:0px 2px 3px -2px #1b1b1b;
+}
+
+#protocolSel{
+	display: none;
+	width: 100%;
+    height: 100%;
+}
+
+#protocolSel form {
+	height: 100%;
+    padding: 0px;
+    margin: 0px;
+    display: table-cell;
+    vertical-align: middle;
+}
+
+#superuserSel{
+	display: table;
+    margin: auto;
+    width: 80%;
+    height: 80%;
+}
+
+input:focus {
+	outline: none;
+	cursor: pointer;
+}
+
+input {
+	cursor: pointer;
+}
+
+#optionsTop span {
+	cursor: pointer;
+}
+
+input.selButton{
+	border: 0px;
+	width: 64px;
+	height: 64px;
+	filter: drop-shadow(0px 2px 1px #1b1b1b);
+}
+
+input.unselButton{
+	border: 0px;
+	width: 64px;
+	height: 64px;
+	filter: drop-shadow(0px 2px 1px #1b1b1b);
+}
+
+input.unselButtonText {
+	color: #d1d1d1;
+	width: 100%;
+    white-space: normal;
+	text-shadow: 0px 2px 1px #1b1b1b;
+	border: 0px;
+	font-size: inherit;
+	background: rgba(255, 255, 255, 0 );
+}
+
+input.selButtonText {
+	color: #ff8100;
+	width: 100%;
+    white-space: normal;
+	text-shadow: 0px 2px 1px #1b1b1b;
+	border: 0px;
+	font-size: inherit;
+	background: rgba(255, 255, 255, 0 );
+}
+
+
+#superuserSel input.selButtonText{
+	display: table-cell;
+	padding: 10px 0px;
+    width: 58px;
+    float: right;
+}
+
+#naaButton.unselButton {
+	background: url('hqplayer.png') 0px 0px no-repeat;
+}
+
+#naaButton.selButton {
+	background: url('hqplayer.png') -64px 0px no-repeat;
+}
+
+#raatButton.unselButton {
+	background: url('roon.png') 0px 0px no-repeat;
+}
+
+#raatButton.selButton {
+	background: url('roon.png') -64px 0px no-repeat;
+}
+
+#mpdButton.unselButton {
+	background: url('mpd.png') 0px 0px no-repeat;
+}
+
+#mpdButton.selButton {
+	background: url('mpd.png') -64px 0px no-repeat;
+}
+
+#aplayerButton.unselButton {
+	background: url('ap.png') 0px 0px no-repeat;
+}
+
+#aplayerButton.selButton {
+	background: url('ap.png') -64px 0px no-repeat;
+}
+
+#airPlayButton.unselButton {
+	background: url('airplay.png') 0px 0px no-repeat;
+}
+
+#airPlayButton.selButton {
+	background: url('airplay.png') -64px 0px no-repeat;
+}
+
+#lmsButton.unselButton {
+	background: url('squeezelite.png') 0px 0px no-repeat;
+}
+
+#lmsButton.selButton {
+	background: url('squeezelite.png') -64px 0px no-repeat;
+}
+
+#spotifyButton.unselButton {
+	background: url('spotify.png') 0px 0px no-repeat;
+}
+
+#spotifyButton.selButton {
+	background: url('spotify.png') -64px 0px no-repeat;
+}
+
+#screamButton.unselButton {
+	background: url('scream.png') 0px 0px no-repeat;
+}
+
+#screamButton.selButton {
+	background: url('scream.png') -64px 0px no-repeat;
+}
+
+#tidalButton.unselButton {
+	background: url('tidal.png') 0px 0px no-repeat;
+}
+
+#tidalButton.selButton {
+	background: url('tidal.png') -64px 0px no-repeat;
+}
+
+#preloadBack{
+	width: 96px;
+    height: 2px;
+    position: absolute;
+	display: none;
+    top: 50%;
+    left: 50%;
+    margin: -1px 0 0 -48px;
+	z-index: 1000;
+	background: black;
+	overflow: hidden;
+}
+
+#preload{
+	width: 20px;
+	height: 2px;
+	position: reltive;
+	left: -20px;
+	background: #ff8100;
+	animation: preload 1s linear infinite;
+}
+
+@keyframes preload {
+ from {
+    transform: translate(-20px);
+  }
+ to {
+    transform: translate(96px);
+  }
+}
+
+#sign {
+	color: rgb(14, 14, 14);
+    position: absolute;
+    bottom: -30px;
+    display: block;
+    display: table;
+    width: 51px;
+    height: 28px;
+    /* padding: 5px 9px; */
+    text-align: center;
+    right: 13px;
+    /* z-index: -1000; */
+    box-shadow: inset 0px 15px 15px -15px rgb(0, 0, 0);
+    text-shadow: 0px 1px 0px rgb(78, 78, 78);
+    background: rgb(58, 58, 58);
+    border: none;
+}
+
+#sign div{
+    width: 3px;
+    height: 100%;
+    box-shadow: inset 0px 14px 15px -12px rgb(95, 0, 0);
+    background: #ff8100;
+}
+
+#sign span{
+	display: table-cell;
+    width: 100%;
+    height: 100%;
+    vertical-align: middle;
+}
+
+#contentCell {
+	position: relative;
+}
+
+#settingsLink {
+	display: none;
+}
+
+a {
+	color: #d1d1d1;
+    text-decoration: none;
+}
+
+#ver {
+	float: right;
+} 
+
+#ver div, #ver span, #ver div input{
+	float: right;
+} 
+
+@media screen and (max-width: 890px) and  (min-width: 540px) {
+	#mainContent{
+		width: 70%;
+		height: 70%;
+	}
+}
+
+.row {
+	display: table-row;
+}
+
+#kernel, #output, #wifi, #hostname, #eMMC{
+	display: table-cell;
+	vertical-align: middle;
+	border-bottom: 1px solid #404040;
+}
+
+#kernel span{
+	display: block;
+	padding: 10px 0 0 0;
+}
+
+.title{
+	font-weight: bold;
+	display: block;
+	padding: 10px 0 10px 0;
+}
+
+.warn{
+	color: red;
+}
+
+#eMMC{
+	display: table-cell;
+	vertical-align: middle;
+}
+
+#clickDisabler{
+	display: none;
+	position: absolute;
+	z-index:2000;
+	width: 100%;
+	height: 100%;
+}
+
+@media screen and (max-width: 539px) {
+	
+#iconContainer {
+    display: table;
+    table-layout: fixed;
+    width: 97%;
+    height: 55%;
+    margin: auto;
+}
+
+#mainContent {
+    width: 87%;
+    height: 70%;
+}	
+
+}
+
+.messagebox {
+position:fixed;
+background-color:#f6b26b;
+color:#f6b26b;
+border:3px solid #ffffff;
+font-family:'Voltaire', sans-serif;
+font-size:24px;
+width:180px;
+border-radius:1px;
+z-index:1;
+padding:10px;
+}
+

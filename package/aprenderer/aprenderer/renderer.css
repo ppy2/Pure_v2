@@ -1,0 +1,97 @@
+body
+{
+  background-color : rgb(86, 86, 86);
+}
+
+#config_body 
+{ 
+ -webkit-transform-origin: 0 0;
+ -o-transform-origin: 0 0;
+ -ms-transform-origin: 0 0;
+ -moz-transform-origin: 0 0;
+ transform-origin: 0 0; 
+ margin: 0; font-family: arial, verdana, sans-serif; background : rgb(224, 224, 224);
+}
+
+.confbutton 
+ {
+   width: 66px;
+   height: 30px;
+   margin: 10px;
+ }
+
+.val
+{
+    width:40px;
+    text-align: right;
+}
+
+.val2
+{
+    width:60px;
+    text-align: right;
+}
+
+.conf_section
+{
+/*    border: 1px solid gray;   */
+    padding : 2px;
+    text-align: left;
+    margin:6px;
+    width:300px
+}
+
+.conf_section2
+{
+    border: 1px solid gray;  
+    padding : 2px;
+    margin:4px;
+    width:220px
+}
+
+.conf_section3
+{
+    border: 1px solid gray;  
+    padding : 2px;
+    text-align: left;
+    margin:2px;
+    width:440px;
+    display: inline-block
+}
+
+label.disabled { color: #aaa; }
+ul, li {margin: 0; padding: 0; list-style: none;}
+a, a:hover {text-decoration: none;}
+.wrapper {width: 480px; height: 480px; margin: 0}
+
+#header {padding: 3px 0; margin-bottom: 5px; background: #ddd; border-bottom: 1px solid #eee}
+#header h1 {padding-left: 20px; margin: 0;}
+#header h1 a {color: #fff;}
+#header h1 a:hover {color: #efefef;}
+
+/* Tabs */
+#tabs {border: 1px solid #ccc; border-radius: 8px}
+#tabs .tabs {overflow: hidden; border-bottom: 1px solid #ccc}
+#tabs .tabs li {float: left;}
+#tabs .tabs li + li {border-left: 1px solid #ccc}
+#tabs .tabs li a {display: block; padding: 10px; font-size: 15px; line-height: 21px; color: #999;}
+#tabs .tabs li a.active,
+#tabs .tabs li a:hover {color: #666;}
+
+#tabs .tabs-content {padding: 8px; font-size: 15px; line-height: 20px;}
+
+#config_label, h3 {margin-left: 20px;}
+
+#status table tr {font-size: 14px;line-height:16px}
+
+.playing {}
+
+select {
+  -webkit-appearance: listbox !important;
+  padding-left: 4px;   
+}
+
+#dsp table
+{
+    text-align: right;    
+}

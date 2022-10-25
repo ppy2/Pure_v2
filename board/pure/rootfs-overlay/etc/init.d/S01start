@@ -1,0 +1,30 @@
+#!/bin/sh
+
+case "$1" in
+  start)
+    
+    cat /etc/random-seed >/dev/urandom
+    /sbin/rndaddtoentcnt 1024
+    
+    echo 113 > /sys/class/gpio/export
+    echo out > /sys/class/gpio/gpio113/direction
+    echo 1 > /sys/class/gpio/gpio113/value
+    echo 51 > /sys/class/gpio/export
+    echo out > /sys/class/gpio/gpio51/direction
+    echo 1 > /sys/class/gpio/gpio51/value
+    echo 60 > /sys/class/gpio/export
+    echo in > /sys/class/gpio/gpio60/direction
+
+    echo 256 > /proc/asound/card0/pcm0p/sub0/prealloc
+    echo 256 > /proc/asound/card1/pcm0p/sub0/prealloc
+    
+    test -f /etc/output || echo USB > /etc/output
+    grep -q I2S /etc/output && /etc/rc.pure/S10mute start
+
+    /sbin/sysctl -p
+
+    ;;
+ *)
+    exit 1
+esac
+

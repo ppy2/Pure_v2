@@ -1,0 +1,29 @@
+#!/bin/sh
+#
+# loading kernel modules
+#
+
+#case "$1" in
+#  start)
+#	echo "Loading modules..."
+
+# For BeagleBone Green Gateway
+#if ls /proc/device-tree/chosen/overlays/M-BB-BBGG-00A0 ; then
+#	/sbin/modprobe smsc95xx
+#	    if cat /etc/output|grep -q "I2S" ; then
+#		# Disable internal WiFi and enable RTL USB adapters
+#		/sbin/modprobe 8188eu
+#		/sbin/modprobe 88x2bu
+#	    else
+#		/sbin/modprobe wlcore
+#		/sbin/modprobe wl18xx
+#	    fi
+#fi
+
+#/sbin/modprobe 8188eu
+#/sbin/modprobe 88x2bu
+
+#	;;
+#  *)
+#	exit 1
+#esac

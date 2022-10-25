@@ -1,0 +1,13 @@
+source "$BR2_EXTERNAL_PURE_PATH/package/roonready/Config.in"
+source "$BR2_EXTERNAL_PURE_PATH/package/naa/Config.in"
+source "$BR2_EXTERNAL_PURE_PATH/package/aprenderer/Config.in"
+source "$BR2_EXTERNAL_PURE_PATH/package/scream/Config.in"
+source "$BR2_EXTERNAL_PURE_PATH/package/tidalconnect/Config.in"
+source "$BR2_EXTERNAL_PURE_PATH/package/squeezeliteR2/Config.in"
+source "$BR2_EXTERNAL_PURE_PATH/package/librespot/Config.in"
+source "$BR2_EXTERNAL_PURE_PATH/package/botic7/Config.in"
+
+
+
+
+

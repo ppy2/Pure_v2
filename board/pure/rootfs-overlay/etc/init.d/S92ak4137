@@ -1,0 +1,38 @@
+#!/bin/sh
+
+case "$1" in
+  start)
+if /usr/sbin/i2cdetect -ry 1|grep -q "10: .. 11" ; then
+    echo 16897 > /sys/module/snd_soc_botic/parameters/dai_format
+    ########## U8 to PCM192 ###############
+    /usr/sbin/i2cset -f -y 1 0x10 0x00 0x80
+    /usr/sbin/i2cset -f -y 1 0x10 0x01 0x13
+    /usr/sbin/i2cset -f -y 1 0x10 0x02 0x00
+    /usr/sbin/i2cset -f -y 1 0x10 0x03 0xA0
+    /usr/sbin/i2cset -f -y 1 0x10 0x04 0x08
+    /usr/sbin/i2cset -f -y 1 0x10 0x05 0x03
+    /usr/sbin/i2cset -f -y 1 0x10 0x00 0x81
+    ########## U9 to DSD256 ###############
+    /usr/sbin/i2cset -f -y 1 0x11 0x00 0x80
+    /usr/sbin/i2cset -f -y 1 0x11 0x01 0x13
+    /usr/sbin/i2cset -f -y 1 0x11 0x02 0x00
+    /usr/sbin/i2cset -f -y 1 0x11 0x03 0xA0
+    /usr/sbin/i2cset -f -y 1 0x11 0x04 0x61
+    /usr/sbin/i2cset -f -y 1 0x11 0x05 0x02
+    /usr/sbin/i2cset -f -y 1 0x11 0x00 0x81
+fi
+    ;;
+ *)
+    exit 1
+esac
+
+
+
+
+
+
+
+
+
+
+

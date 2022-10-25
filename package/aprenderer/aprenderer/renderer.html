@@ -1,0 +1,317 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="stylesheet" href="renderer.css">
+<script src="zepto.min.js"></script>
+<script src="renderer.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APlayer Media Renderer 2.10</title>
+</head>
+<body>
+<div id="config_body" style="width:480px;height:530px">
+<div class="wrapper">
+  <div id="header">
+    <h3>
+      Album Player Media Renderer settings
+    </h3>
+  </div>
+  <div id="tabs">    
+    <ul class="tabs">
+      <li class="tab active"><a href="#general" class="active">General</a></li>
+      <li class="tab"><a href="#decoder">DSD</a></li>
+      <li class="tab"><a href="#dsp">DSP</a></li>
+      <li class="tab" style="display:none" id="convtab"><a href="#conv">Convolver</a></li>
+      <li class="tab"><a href="#system">System</a></li>
+      <li class="tab"><a href="#status">Status</a></li>
+      <li class="tab"><a href="#card">Card</a></li>
+    </ul>
+    <div class="tabs-content">
+<div id="general">        
+<table class="conf_section">
+  <tr><td>Play silence (ms) <input id="silence" class="val" type="text"> <span id="td16"><input id="check_16bit" type="checkbox"> 16bit output</span>&nbsp;&nbsp;<span id="td24"><input id="check_24bit" type="checkbox"> 24bit output</span></td></tr>
+  <tr><td>
+    <table class="conf_section3">
+    <tr><td colspan=2 style="width:180px">Playback mode</td><td style="width:20px">&nbsp;</td><td colspan="2">Preload buffer (frames)</td></tr>
+    <tr><td><input id="radio_st" type="radio" name="pm" checked></td><td>Standard</td><td>&nbsp;</td><td colspan="2"><input id="std_buffer" type="text" class="val2"> (16384-8388608)</td></tr>
+    <tr><td><input id="radio_di" type="radio" name="pm"></td><td>Direct Input</td><td>&nbsp;</td><td colspan="2"><input id="check_gapless" type="checkbox" checked> Gapless mode</td></tr>
+    <tr><td><input  id="radio_fm" type="radio" name="pm"></td><td>Full Memory</td><td>&nbsp;</td><td colspan="2"><input  id="check_preload" type="checkbox"> Full preloading</td></tr>
+    </table>
+    </td></tr>
+    <tr><td><input id="check_volume" type="checkbox"> <label for="check_volume">Volume control</label> <input id="hwvolume" type="checkbox"><label id="lhw" for="hwvolume">HW </label><select id="hwlist" style="width:120px"/></td></tr>
+    <tr><td>
+    <table class="conf_section3">
+      <tr><td colspan=2 style="width:120px">&nbsp;ALSA Period</td><td colspan=3 style="width:120px"> &nbsp;&nbsp;&nbsp;ALSA Buffer</td><td colspan=2 style="width:140px"> &nbsp;&nbsp;Buffer Access</td></tr>
+      <tr><td></td><td><input id="pframes" class="val" type="text"> frames</td><td>&nbsp;</td><td></td><td><input  id="bframes" class="val" type="text"> frames &nbsp;</td><td></td><td><input  id="mmap" name="mmap" type="radio" checked> MMAP mode</td></tr>
+      <tr><td></td><td><input id="pmks" class="val" type="text"> µs</td><td>&nbsp;</td><td></td><td><input id="bmks" class="val" type="text"> µs &nbsp;</td><td></td><td><input  id="rw" name="mmap" type="radio"> RW mode</td></tr>
+    </table>
+    </td></tr>
+    <tr><td><input id="check_down" type="checkbox"> Download tracks</td></tr>
+    <tr><td><span id="server_info"></span></td></tr>  
+  </table>
+</div>
+<div id="decoder">
+  <table style="width:480px">
+    <tr><td><table class="conf_section">
+    <tr><td colspan=3 style="width:200">DSD settings</td></tr>
+    <tr><td><input id="radio_pcm" type="radio" name="dsd" checked></td><td style="width:8px">&nbsp;</td><td>PCM output mode</td></tr>
+    <tr><td><input  id="radio_dop" type="radio" name="dsd"></td><td>&nbsp;</td><td>DoP output mode</td></tr>    
+    <tr><td><input  id="radio_dsd" type="radio" name="dsd"></td><td>&nbsp;</td><td><label id="ndsd">Native DSD output mode</label></td></tr>  
+    <tr><td colspan=3 style="width:200"><hr>DSD->PCM samplerate</td></tr>
+    <tr><td><input  id="radio_44" type="radio" name="pcm" checked></td><td>&nbsp;</td><td>44100</td></tr>
+    <tr><td><input  id="radio_88" type="radio" name="pcm"></td><td>&nbsp;</td><td>88200</td></tr>
+    <tr><td><input  id="radio_176" type="radio" name="pcm"></td><td>&nbsp;</td><td>176400</td></tr>
+    <tr><td><input  id="radio_352" type="radio" name="pcm"></td><td>&nbsp;</td><td>352000</td></tr>
+  </table></td></tr>
+   </table>
+</div>
+<div id="dsp">
+  <table style="width:220px">
+    <tr valign="top"><td><table class="conf_section2">
+    <tr><td colspan=3>Resampler (SoXR 0.1.3)</td></tr>
+    <tr><td colspan=2>
+      <span>&lt; 44 KHz</span>
+      </td><td><select id="res_bf44"> 
+        <option value="0">original</option>
+        <option value="1">44.1 KHz</option>
+        <option value="2">48 KHz</option>
+        <option value="3">88.2 KHz</option>
+        <option value="4">96 KHz</option>
+        <option value="5">176.4 KHz</option>
+        <option value="6">192 KHz</option>
+        <option value="7">352.8 KHz</option>
+        <option value="8">384 KHz</option>
+        <option value="9">705.6 KHz</option>
+        <option value="10">768 KHz</option>
+        </select></td></tr>
+      <tr><td colspan=2>
+          <span>44.1 KHz</span>
+          </td><td><select id="res44"> 
+            <option value="0">original</option>
+            <option value="2">48 KHz</option>
+            <option value="3">88.2 KHz</option>
+            <option value="4">96 KHz</option>
+            <option value="5">176.4 KHz</option>
+            <option value="6">192 KHz</option>
+            <option value="7">352.8 KHz</option>
+            <option value="8">384 KHz</option>
+            <option value="9">705.6 KHz</option>
+            <option value="10">768 KHz</option>
+            </select></td></tr>
+    <tr><td colspan=2>
+    <span>48 KHz</span>
+    </td><td><select id="res48"> 
+      <option value="0">original</option>
+      <option value="1">44.1 KHz</option>
+      <option value="3">88.2 KHz</option>
+      <option value="4">96 KHz</option>
+      <option value="5">176.4 KHz</option>
+      <option value="6">192 KHz</option>
+      <option value="7">352.8 KHz</option>
+      <option value="8">384 KHz</option>
+      <option value="9">705.6 KHz</option>
+      <option value="10">768 KHz</option>
+      </select></td></tr>
+      <tr><td colspan=2>
+        <span>88.2 KHz</span>
+        </td><td><select id="res88"> 
+          <option value="0">original</option>
+          <option value="1">44.1 KHz</option>
+          <option value="2">48 KHz</option>
+          <option value="4">96 KHz</option>
+          <option value="5">176.4 KHz</option>
+          <option value="6">192 KHz</option>
+          <option value="7">352.8 KHz</option>
+          <option value="8">384 KHz</option>
+          <option value="9">705.6 KHz</option>
+          <option value="10">768 KHz</option>
+          </select></td></tr>
+          <tr><td colspan=2>
+            <span>96 KHz</span>
+            </td><td><select id="res96"> 
+              <option value="0">original</option>
+              <option value="1">44.1 KHz</option>
+              <option value="2">48 KHz</option>
+              <option value="3">88.2 KHz</option>
+              <option value="5">176.4 KHz</option>
+              <option value="6">192 KHz</option>
+              <option value="7">352.8 KHz</option>
+              <option value="8">384 KHz</option>
+              <option value="9">705.6 KHz</option>
+              <option value="10">768 KHz</option>
+              </select></td></tr>
+              <tr><td colspan=2>
+                <span>176.4 KHz</span>
+                </td><td><select id="res176"> 
+                  <option value="0">original</option>
+                  <option value="1">44.1 KHz</option>
+                  <option value="2">48 KHz</option>
+                  <option value="3">88.2 KHz</option>
+                  <option value="4">96 KHz</option>
+                  <option value="6">192 KHz</option>
+                  <option value="7">352.8 KHz</option>
+                  <option value="8">384 KHz</option>
+                  <option value="9">705.6 KHz</option>
+                  <option value="10">768 KHz</option>
+                  </select></td></tr>
+                  <tr><td colspan=2>
+                    <span>192 KHz</span>
+                    </td><td><select id="res192"> 
+                      <option value="0">original</option>
+                      <option value="1">44.1 KHz</option>
+                      <option value="2">48 KHz</option>
+                      <option value="3">88.2 KHz</option>
+                      <option value="4">96 KHz</option>
+                      <option value="5">176.4 KHz</option>
+                      <option value="7">352.8 KHz</option>
+                      <option value="8">384 KHz</option>
+                      <option value="9">705.6 KHz</option>
+                      <option value="10">768 KHz</option>
+                      </select></td></tr>
+                      <tr><td colspan=2>
+                        <span>352.8 KHz</span>
+                        </td><td><select id="res352"> 
+                          <option value="0">original&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                          <option value="1">44.1 KHz</option>
+                          <option value="2">48 KHz</option>
+                          <option value="3">88.2 KHz</option>
+                          <option value="4">96 KHz</option>
+                          <option value="5">176.4 KHz</option>
+                          <option value="6">192 KHz</option>
+                          <option value="8">384 KHz</option>
+                          <option value="9">705.6 KHz</option>
+                          <option value="10">768 KHz</option>
+                          </select></td></tr>
+                          <tr><td colspan=2>
+                            <span>384 KHz</span>
+                            </td><td><select id="res384"> 
+                              <option value="0">original</option>
+                              <option value="1">44.1 KHz</option>
+                              <option value="2">48 KHz</option>
+                              <option value="3">88.2 KHz</option>
+                              <option value="4">96 KHz</option>
+                              <option value="5">176.4 KHz</option>
+                              <option value="6">192 KHz</option>
+                              <option value="7">352.8 KHz</option>
+                              <option value="9">705.6 KHz</option>
+                              <option value="10">768 KHz</option>
+                              </select></td></tr>
+                              <tr><td colspan=3>Attenuate, dB -<input type="text" id="att" style="width:18px"></td></tr>
+            </table></td>
+            <td>
+                <table class="conf_section2">
+                    <tr><td valign="top"><input id="check_multi" type="checkbox"></td><td align="left" colspan=2>
+                        <span>Multichannel to stereo</span><br>
+                        </td>
+                    </tr>      
+                    <tr><td valign="top"><input id="check_swap" type="checkbox"></td><td align="left" colspan=2>
+                         <span>Swap channels (stereo)</span><br>
+                        </td>
+                    </tr> 
+                    <tr><td valign="top"><input id="check_phase" type="checkbox"></td><td align="left" colspan=2>
+                        <span>Invert phase</span></td></tr></table>
+                        <table class="conf_section2">
+                  <tr style="text-align:left"><td colspan=2> Resampler options<br><select id="soxr_phase" style="width:180px">                                    
+                    <option value="0">Minimum phase</option>
+                    <option value="1">Intermediate phase</option>
+                    <option value="2">Linear phase</option></select></td></tr>
+                   <tr style="text-align:left"><td colspan="2"><input id="soxr_filter" type="checkbox">Steep filter (99%)</td></tr>
+                   <tr style="text-align:left"><td colspan="2"><input id="soxr_quality" type="checkbox">Ultra High Quality</td></tr></table>
+              <table class="conf_section2">
+                <tr style="text-align:left"><td colspan="2"><input id="enable_dsd" type="checkbox"> Convert PCM to DSD<br>
+                  <select id="dsd_filter">
+                    <option  value="0">clans-4</option>
+                    <option  value="1">clans-5</option>
+                    <option  value="2">clans-6</option>
+                    <option  value="3">clans-7</option>
+                    <option  value="4">clans-8</option>
+                    <option  value="5">sdm-4</option>
+                    <option  value="6">sdm-5</option>
+                    <option  value="7">sdm-6</option>
+                    <option  value="8">sdm-7</option>
+                    <option  value="9">sdm-8</option>
+                  </select> <select id="dsd_rate">
+                    <option  value="0">DSD64</option>
+                    <option  value="1">DSD128</option>
+                    <option  value="2">DSD256</option>            
+                  </select></td></tr>
+                 <tr style="text-align:left"><td colspan="2">
+                  <select id="dsd_output">
+                   <option  value="0">DoP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                   <option  id="sdm_n"  value="1">Native</option>        
+                </select> <select id="dsd_level">
+                    <option  value="0">0dB&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>
+                    <option  value="1">-6dB</option>              
+                  </select></td></tr>
+                 <tr style="text-align:left"><td colspan="2"><input id="dsd_multithread" type="checkbox"> Multi-thread mode</td></tr>                
+            </table>
+            </td></tr>
+   </table>
+</div>
+   <div id="conv"><br>    
+    <input id="conv_en" type="checkbox"><label for="conv_en" >Enable convolver</label><br>
+    <span>Filters:</span>
+    <p id="filters" style="padding:8px;border:1px solid gray;width:400px;height:100px;overflow-y:auto;margin:8px"></p>
+  Select filter:  <input type="text" id="FilterNum" style="width:24px"><br><br>  
+  Attenuation: <input style="width:300px;height:10px" id="db" onchange="AttChange(this.value)" type="range" min="-60" max="60" step="0.5" list="tickmarks"> <span id="dbtx">0</span>dB<br>
+<!--  <datalist id="tickmarks">
+    <option value="-60" label="-60dB"><option value="-11"><option value="-10"><option value="-9"><option value="-8">
+    <option value="-7"><option value="-6"><option value="-5"><option value="-4"><option value="-3"><option value="-2">
+    <option value="-1"><option value="0" label="0dB"><option value="1"><option value="2"><option value="3"><option value="4">
+    <option value="5"><option value="6"><option value="7"><option value="8"><option value="9"><option value="10">
+    <option value="11"><option value="12"  label="12dB">
+  </datalist>  
+-->
+  <p id="filtdesc"></p>
+</div>
+<div id="system">
+  <table style="width:480px">
+   <tr><td>These options will be effective only for the root user:</td></tr>
+    <tr><td>
+    <table class="conf_section">    
+    <tr><td>Process Priority (0 - 99)</td><td style="width:8px">&nbsp;</td><td><input id="priority" type="text" class="val"></td></tr>
+    <tr><td>Process Nice (-20 - 19)</td><td style="width:8px">&nbsp;</td><td><input id="nice" type="text" class="val"></td></tr>
+    </table></td></tr>
+    <tr><td><input id="check_memory" type="checkbox" checked> &nbsp; Lock memory</td></tr>
+    <tr><td>
+    <table class="conf_section">
+    <tr><td colspan=3 style="width:200">Selecting cores</td></tr>
+    <tr><td><input  id="cores0" type="radio" name="cores" checked></td><td>&nbsp;</td><td>Without selecting cores</td></tr>
+    <tr><td><input  id="cores1" type="radio" name="cores"></td><td>&nbsp;</td><td>Single Core</td></tr>
+    <tr><td><input  id="cores2" type="radio" name="cores"></td><td>&nbsp;</td><td>Double Core</td></tr>    
+    </table></td></tr>
+  </table>
+</div>
+<div id="status">
+<table style="width:470px;text-align:left;margin:6px">
+   <tr><td style="width:170px;">Root User :</td><td style="width:8px">&nbsp;</td><td id="stat_root"></td></tr>
+   <tr><td>Used Cores :</td><td style="width:8px">&nbsp;</td><td id="stat_cores"></td></tr>
+   <tr><td>Process Priority:</td><td style="width:8px">&nbsp;</td><td id="stat_prio"></td></tr>
+   <tr><td>Process Nice:</td><td style="width:8px">&nbsp;</td><td id="stat_nice"></td></tr>
+   <tr><td nowrap>Supports 16 bit output:</td><td style="width:8px">&nbsp;</td><td id="stat_16bit"></td></tr>
+   <tr><td nowrap>Supports 24 bit output:</td><td style="width:8px">&nbsp;</td><td id="stat_24bit"></td></tr>
+   <tr><td nowrap>Supports 32 bit output:</td><td style="width:8px">&nbsp;</td><td id="stat_32bit"></td></tr>
+   <tr><td nowrap>Supports Native DSD:</td><td style="width:8px">&nbsp;</td><td id="stat_dsd"></td></tr> 
+   <tr><td>Playing:</td><td style="width:8px">&nbsp;</td><td id="stat_play"></td></tr>
+   <tr class="playing"><td>Playing file:</td><td style="width:8px">&nbsp;</td><td id="stat_play_file"></td></tr>
+   <tr class="playing"><td>Source frequency:</td><td style="width:8px">&nbsp;</td><td id="stat_freq"></td></tr>  
+   <tr class="playing"><td>Source bits:</td><td style="width:8px">&nbsp;</td><td id="stat_bps"></td></tr>
+   <tr class="playing"><td>Volume level:</td><td style="width:8px">&nbsp;</td><td id="stat_vol"></td></tr> 
+   <tr class="playing"><td>ALSA Period:</td><td style="width:8px">&nbsp;</td><td id="stat_period_size"></td></tr>
+   <tr class="playing"><td>ALSA Buffer:</td><td style="width:8px">&nbsp;</td><td id="stat_buffer_size"></td></tr>
+</table>   
+</div>
+<div id="card">    
+  <span>/etc/asound.conf:</span>
+  <p id="asound" style="padding:8px;border:1px solid gray;width:340px;height:100px;overflow-y:auto;margin:8px"></p>
+<span>Available cards:</span>
+  <p id="cards" style="padding:8px;border:1px solid gray;width:340px;height:100px;overflow-y:auto;margin:8px"></p>
+Select card:  <input type="text" id="CardNum" style="width:24px">
+</div>
+</div>
+</div>
+</div>
+<div style="vertical-align:bottom"><button class="confbutton" onclick="SaveConfig()">Apply</button>&nbsp;&nbsp;<button class="confbutton"  onclick="HideConfig()">Return</button>&nbsp;<span id="config_label"></span><button style="float:right;margin:10px;height:30px" onclick="ExitApp()">Exit Renderer</button></div>
+</div>
+</body>
+</html>

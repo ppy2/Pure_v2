@@ -1,0 +1,27 @@
+#! /bin/sh
+
+case "$1" in
+  start)
+    printf "Starting mute: "
+    start-stop-daemon -S -q -x nice -n 10 /opt/mutedsc2.sh &
+    [ $? = 0 ] && echo "OK" || echo "FAIL"
+    ;;
+  stop)
+    printf "Stopping mute: "
+#    start-stop-daemon -K -q -n $NAME
+    killall mutedsc2.sh
+    [ $? = 0 ] && echo "OK" || echo "FAIL"
+    ;;
+  restart|reload)
+    echo "Restarting mute: "
+    $0 stop
+    sleep 1
+    $0 start
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|reload}" >&2
+    exit 1
+    ;;
+esac
+
+exit 0

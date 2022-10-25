@@ -1,0 +1,4 @@
+config BR2_PACKAGE_SQUEEZELITER2
+	bool "squeezeliteR2"
+        help
+	  squeezeliteR2

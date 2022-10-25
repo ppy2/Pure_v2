@@ -1,0 +1,13 @@
+#!/bin/sh
+
+case "$1" in
+    start)
+    printf "Starting NAA: "
+    nice -n -10 /usr/sbin/networkaudiod > /tmp/naa.log 2>&1 &
+	;;
+    stop)
+    killall -9 networkaudiod
+    ;;
+    *)
+	exit 1
+esac

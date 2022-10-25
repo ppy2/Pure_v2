@@ -1,0 +1,19 @@
+176400 2 2 0
+0 0
+0 0
+./cfilters/Binaural/[176]HL4.wav
+0
+0.0
+0.0
+./cfilters/Binaural/[176]HL4.wav
+1
+0.0
+1.0
+./cfilters/Binaural/[176]HR4.wav
+0
+1.0
+0.0
+./cfilters/Binaural/[176]HR4.wav
+1
+1.0
+1.0

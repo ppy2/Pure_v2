@@ -1,0 +1,19 @@
+48000 2 2 0
+0 0
+0 0
+./cfilters/Binaural/[048]HL4.wav
+0
+0.0
+0.0
+./cfilters/Binaural/[048]HL4.wav
+1
+0.0
+1.0
+./cfilters/Binaural/[048]HR4.wav
+0
+1.0
+0.0
+./cfilters/Binaural/[048]HR4.wav
+1
+1.0
+1.0

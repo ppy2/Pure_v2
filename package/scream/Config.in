@@ -1,0 +1,5 @@
+config BR2_PACKAGE_SCREAM
+	bool "scream"
+        help
+	    Scream is a virtual device driver for Windows that provides a discrete sound device. 
+	    Audio played through this device is published on your local network as a PCM multicast stream.

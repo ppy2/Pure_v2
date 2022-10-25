@@ -1,0 +1,33 @@
+#!/bin/sh
+
+NAME=upmpdcli
+CONFFILE=/etc/$NAME.conf
+PIDFILE=/var/run/$NAME.pid
+DAEMON_ARGS="-D -c $CONFFILE"
+
+case "$1" in
+    start)
+i=1
+    while [ $i -lt 300 ]
+    do
+    echo "Number: $i"
+    i=$((i+1))
+    network=`route |grep UG`
+    if [[ -n "$network"  ]]; then
+    break
+    fi
+    sleep 1
+done
+        printf "Starting $NAME: "
+	NAME=`hostname`_`ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`
+	sed -i "s/^friendlyname.*/friendlyname = $NAME/" /etc/upmpdcli.conf
+	start-stop-daemon --start --quiet --background --exec /usr/bin/upmpdcli \
+                -- $DAEMON_ARGS \
+                && echo "OK" || echo "FAIL"
+                ;;
+        stop)
+        killall upmpdcli
+        ;;
+        *)
+                exit 1
+esac

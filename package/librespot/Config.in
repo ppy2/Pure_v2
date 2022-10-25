@@ -1,0 +1,7 @@
+config BR2_PACKAGE_LIBRESPOT
+    bool "librespot"
+    depends on BR2_PACKAGE_HOST_RUSTC_TARGET_ARCH_SUPPORTS
+    select BR2_PACKAGE_HOST_RUSTC
+    help
+      This is a comment that explains what foo is.
+      http://foosoftware.org/foo/

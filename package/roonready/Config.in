@@ -1,0 +1,4 @@
+config BR2_PACKAGE_ROONREADY
+	bool "roonready"
+        help
+	  "Roon endpoint"

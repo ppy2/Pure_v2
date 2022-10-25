@@ -1,0 +1,28 @@
+#!/bin/sh
+
+NAME=`hostname`_`ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`
+OPTIONS="-D 1000:u32be -r 44100-705600:1000 -a 400:3::0 -M $NAME"
+
+case "$1" in
+    start)
+
+i=1
+    while [ $i -lt 300 ]
+    do
+    echo "Number: $i"
+    i=$((i+1))
+    network=`route |grep UG`
+    if [[ -n "$network"  ]]; then
+    break
+    fi
+    sleep 1
+done
+        printf "Starting Squeezelite: "
+        start-stop-daemon --start --quiet --background --exec nice -n -10 /usr/bin/squeezelite -- $OPTIONS
+                ;;
+    stop)
+    killall squeezelite
+    ;;
+        *)
+                exit 1
+esac

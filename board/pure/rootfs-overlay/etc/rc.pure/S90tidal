@@ -1,0 +1,50 @@
+#!/bin/sh
+
+
+case "$1" in
+    start)
+    printf "Starting Tidal Connect: "
+    if grep -q +-I2SLR /etc/output
+then
+    nohup /usr/bin/jackd -d alsa -r 44100 -P default  > /dev/null 2>&1 &
+    sed -i 's/^#--playback-device/--playback-device/g' /usr/bin/start_tc
+else
+    sed -i 's/^--playback-device/#--playback-device/g' /usr/bin/start_tc
+fi
+
+    i=1
+    while [ $i -lt 300 ]
+        do
+	echo "Number: $i"
+        i=$((i+1))
+	network=`route |grep UG`
+        if [[ -n "$network"  ]]; then
+        break
+        fi
+	sleep 1
+    done
+
+    sleep 0.5
+
+if curl -s ipinfo.io | grep -q '"RU"' ; then
+    start-stop-daemon --start --quiet --background --exec /usr/bin/proxychains4 /usr/bin/start_tc  \
+    && echo "OK" || echo "FAIL"
+else
+    start-stop-daemon --start --quiet --background --exec /usr/bin/start_tc  \
+    && echo "OK" || echo "FAIL"
+fi
+
+	;;
+    stop)
+	killall jackd tcon
+    ;;
+    *)
+	exit 1
+esac
+
+
+
+
+
+
+

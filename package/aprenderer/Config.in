@@ -1,0 +1,4 @@
+config BR2_PACKAGE_APRENDERER
+	bool "aprenderer"
+        help
+	  "UPNP aprenderer"

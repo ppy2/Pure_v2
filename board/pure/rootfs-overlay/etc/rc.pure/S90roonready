@@ -1,0 +1,15 @@
+#!/bin/sh
+
+
+case "$1" in
+    start)
+    printf "Starting RoonBrige: "
+    start-stop-daemon --start --quiet --background --exec /opt/RoonReady/startroon.sh  \
+	&& echo "OK" || echo "FAIL"
+	;;
+    stop)
+    killall startroon.sh raat_app
+    ;;
+    *)
+	exit 1
+esac

@@ -1,0 +1,4733 @@
+diff -urpN linux-custom_orig/arch/arm/boot/dts/am335x-boneblack-botic.dts linux-custom/arch/arm/boot/dts/am335x-boneblack-botic.dts
+--- linux-custom_orig/arch/arm/boot/dts/am335x-boneblack-botic.dts	1970-01-01 03:00:00.000000000 +0300
++++ linux-custom/arch/arm/boot/dts/am335x-boneblack-botic.dts	2022-01-15 10:52:26.982127441 +0300
+@@ -0,0 +1,153 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++#include "am33xx.dtsi"
++#include "am335x-bone-common-no-capemgr.dtsi"
++#include "am33xx-overlay-edma-fix.dtsi"
++
++/ {
++	model = "TI AM335x BeagleBone Black";
++	compatible = "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
++};
++
++&ldo3_reg {
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++	regulator-always-on;
++};
++
++&mmc1 {
++	vmmc-supply = <&vmmcsd_fixed>;
++};
++
++&mmc2 {
++	vmmc-supply = <&vmmcsd_fixed>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&emmc_pins>;
++	bus-width = <8>;
++	status = "okay";
++};
++
++&cpu0_opp_table {
++	/*
++	 * All PG 2.0 silicon may not support 1GHz but some of the early
++	 * BeagleBone Blacks have PG 2.0 silicon which is guaranteed
++	 * to support 1GHz OPP so enable it for PG 2.0 on this board.
++	 */
++	oppnitro@1000000000 {
++		opp-supported-hw = <0x06 0x0100>;
++	};
++};
++
++/ {
++	botic_codec: botic_codec {
++		compatible = "botic-audio-codec";
++		status = "okay";
++	};
++
++	botic {
++		compatible = "botic-audio-card";
++		status = "okay";
++
++		pinctrl-names = "init", "default", "compat";
++		pinctrl-0 = <&botic_cape_common_pins>;
++		pinctrl-1 = <&botic_cape_common_pins &botic_cape_default_pins>;
++		pinctrl-2 = <&botic_cape_common_pins &botic_cape_compat_pins>;
++
++		audio-port = <&mcasp0>;
++		audio-codec = <&botic_codec>;
++		audio-codec-dai = "botic-hifi";
++
++		int-masterclk-enable = <&gpio1 27 0>;
++		ext-masterclk-switch = <&gpio0 15 0>;
++		dsd-format-switch = <&gpio0 14 0>;
++		card-power-switch = <&gpio1 18 0>;
++	};
++};
++
++&am33xx_pinmux {
++	botic_cape_common_pins: botic_cape_common_pins {
++		pinctrl-single,pins = <
++			/* onboard 24.576MHz oscillator control */
++			0x06c 0x07      /* gpmc_a11.gpio1_27,         MUX_MODE7 | PIN_OUTPUT_PULLDOWN */
++			/* external masterclock enable */
++			0x048 0x07      /* gpmc_a2.gpio1_18           MUX_MODE7 | PIN_OUTPUT_PULLDOWN */
++			/* external masterclock switch */
++			0x184 0x07      /* uart1_txd.gpio0_15         MUX_MODE7 | PIN_OUTPUT_PULLDOWN */
++			/* DSD format switch */
++			0x180 0x07      /* uart1_rxd.gpio0_14         MUX_MODE7 | PIN_OUTPUT_PULLDOWN */
++			/* master clock */
++			0x1ac 0x28      /* mcasp0_ahclkx,             MUX_MODE0 | PIN_INPUT(/OUTPUT) */
++			/* bitclock */
++			0x190 0x28      /* mcasp0_aclkx,              MUX_MODE0 | PIN_INPUT(/OUTPUT) */
++			/* wordclock */
++			0x194 0x28      /* mcasp0_fsx,                MUX_MODE0 | PIN_INPUT(/OUTPUT) */
++			/* data pins */
++			0x198 0x28      /* mcasp0_axr0,               MUX_MODE0 | PIN_INPUT(/OUTPUT) */
++			0x1a8 0x28      /* mcasp0_axr1,               MUX_MODE0 | PIN_INPUT(/OUTPUT) */
++			0x1a4 0x2a      /* mcasp0_fsr.mcasp0.axr3,    MUX_MODE2 | PIN_INPUT(/OUTPUT) */
++			/* disable CLKOUT2 to allow usage of mcasp0_axr1 on P9_42 */
++			0x1b4 0x2f      /* xdma_event_intr1.gpio0_20, MUX_MODE7 | PIN_INPUT */
++		>;
++	};
++	botic_cape_default_pins: botic_cape_default_pins {
++		/* this configuration will allow to use AHCLKR in asynchronous mode later */
++		pinctrl-single,pins = <
++			/* data pins */
++			0x1a0 0x2a      /* mcasp0_aclkr.mcasp0_axr2,  MUX_MODE2 | PIN_INPUT(/OUTPUT) */
++			/* disable eCAP0_in_PWM0_out to allow usage of mcasp0_axr2 on P9_41 */
++			0x164 0x2f      /* ecap0_in_pwm0_out.gpio0_7, MUX_MODE7 | PIN_INPUT */
++		>;
++	};
++	botic_cape_compat_pins: botic_cape_compat_pins {
++		/* compatible with original BBB setup, this output is connected also to HDMI transmitter */
++		pinctrl-single,pins = <
++			/* data pins */
++			0x19c 0x2a      /* mcasp0_ahclkr.mcasp0_axr2, MUX_MODE2 | PIN_INPUT(/OUTPUT) */
++		>;
++	};
++
++	i2c1_pins: pinmux_bb_i2c1_pins {
++		pinctrl-single,pins = <
++			0x158 0x72
++			0x15c 0x72
++		>;
++	};
++};
++
++/* Enable McASP. Default parameters can be changed during run-time. */
++&mcasp0 {
++	status = "okay";
++	op-mode = <0>;          /* MCASP_IIS_MODE */
++	tdm-slots = <2>;
++	num-serializer = <4>;
++	serial-dir = <  /* 0: INACTIVE, 1: TX, 2: RX */
++		1 1 1 1
++	>;
++	tx-num-evt = <16>;
++	rx-num-evt = <1>;
++};
++
++/* Enable ADC driver. */
++&tscadc {
++	status = "okay";
++};
++
++/* (Hermes-BBB) A digital volume pot is connected to the AIN4. */
++&am335x_adc {
++	ti,adc-channels = <4>;
++};
++
++/* (Hermes-BBB) The I2C1 for isolated I2C access. */
++&i2c1 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c1_pins>;
++	clock-frequency = <100000>;
++};
+diff -urpN linux-custom_orig/arch/arm/boot/dts/am335x-boneblack-botic-sabre32.dts linux-custom/arch/arm/boot/dts/am335x-boneblack-botic-sabre32.dts
+--- linux-custom_orig/arch/arm/boot/dts/am335x-boneblack-botic-sabre32.dts	1970-01-01 03:00:00.000000000 +0300
++++ linux-custom/arch/arm/boot/dts/am335x-boneblack-botic-sabre32.dts	2022-01-15 10:52:26.982127441 +0300
+@@ -0,0 +1,154 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++#include "am33xx.dtsi"
++#include "am335x-bone-common-no-capemgr.dtsi"
++#include "am33xx-overlay-edma-fix.dtsi"
++
++/ {
++	model = "TI AM335x BeagleBone Black";
++	compatible = "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
++};
++
++&ldo3_reg {
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++	regulator-always-on;
++};
++
++&mmc1 {
++	vmmc-supply = <&vmmcsd_fixed>;
++};
++
++&mmc2 {
++	vmmc-supply = <&vmmcsd_fixed>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&emmc_pins>;
++	bus-width = <8>;
++	status = "okay";
++};
++
++&cpu0_opp_table {
++	/*
++	 * All PG 2.0 silicon may not support 1GHz but some of the early
++	 * BeagleBone Blacks have PG 2.0 silicon which is guaranteed
++	 * to support 1GHz OPP so enable it for PG 2.0 on this board.
++	 */
++	oppnitro@1000000000 {
++		opp-supported-hw = <0x06 0x0100>;
++	};
++};
++
++/ {
++	sabre32_codec: sabre32_codec {
++		compatible = "sabre32-audio-codec";
++		status = "okay";
++		i2c-bus = <&i2c1>; /* Isolated I2C bus on Hermes-BBB. */
++	};
++
++	botic {
++		compatible = "botic-audio-card";
++		status = "okay";
++
++		pinctrl-names = "init", "default", "compat";
++		pinctrl-0 = <&botic_cape_common_pins>;
++		pinctrl-1 = <&botic_cape_common_pins &botic_cape_default_pins>;
++		pinctrl-2 = <&botic_cape_common_pins &botic_cape_compat_pins>;
++
++		audio-port = <&mcasp0>;
++		audio-codec = <&sabre32_codec>;
++		audio-codec-dai = "sabre32-hifi";
++
++		int-masterclk-enable = <&gpio1 27 0>;
++		ext-masterclk-switch = <&gpio0 15 0>;
++		dsd-format-switch = <&gpio0 14 0>;
++		card-power-switch = <&gpio1 18 0>;
++	};
++};
++
++&am33xx_pinmux {
++	botic_cape_common_pins: botic_cape_common_pins {
++		pinctrl-single,pins = <
++			/* onboard 24.576MHz oscillator control */
++			0x06c 0x07      /* gpmc_a11.gpio1_27,         MUX_MODE7 | PIN_OUTPUT_PULLDOWN */
++			/* external masterclock enable */
++			0x048 0x07      /* gpmc_a2.gpio1_18           MUX_MODE7 | PIN_OUTPUT_PULLDOWN */
++			/* external masterclock switch */
++			0x184 0x07      /* uart1_txd.gpio0_15         MUX_MODE7 | PIN_OUTPUT_PULLDOWN */
++			/* DSD format switch */
++			0x180 0x07      /* uart1_rxd.gpio0_14         MUX_MODE7 | PIN_OUTPUT_PULLDOWN */
++			/* master clock */
++			0x1ac 0x28      /* mcasp0_ahclkx,             MUX_MODE0 | PIN_INPUT(/OUTPUT) */
++			/* bitclock */
++			0x190 0x28      /* mcasp0_aclkx,              MUX_MODE0 | PIN_INPUT(/OUTPUT) */
++			/* wordclock */
++			0x194 0x28      /* mcasp0_fsx,                MUX_MODE0 | PIN_INPUT(/OUTPUT) */
++			/* data pins */
++			0x198 0x28      /* mcasp0_axr0,               MUX_MODE0 | PIN_INPUT(/OUTPUT) */
++			0x1a8 0x28      /* mcasp0_axr1,               MUX_MODE0 | PIN_INPUT(/OUTPUT) */
++			0x1a4 0x2a      /* mcasp0_fsr.mcasp0.axr3,    MUX_MODE2 | PIN_INPUT(/OUTPUT) */
++			/* disable CLKOUT2 to allow usage of mcasp0_axr1 on P9_42 */
++			0x1b4 0x2f      /* xdma_event_intr1.gpio0_20, MUX_MODE7 | PIN_INPUT */
++		>;
++	};
++	botic_cape_default_pins: botic_cape_default_pins {
++		/* this configuration will allow to use AHCLKR in asynchronous mode later */
++		pinctrl-single,pins = <
++			/* data pins */
++			0x1a0 0x2a      /* mcasp0_aclkr.mcasp0_axr2,  MUX_MODE2 | PIN_INPUT(/OUTPUT) */
++			/* disable eCAP0_in_PWM0_out to allow usage of mcasp0_axr2 on P9_41 */
++			0x164 0x2f      /* ecap0_in_pwm0_out.gpio0_7, MUX_MODE7 | PIN_INPUT */
++		>;
++	};
++	botic_cape_compat_pins: botic_cape_compat_pins {
++		/* compatible with original BBB setup, this output is connected also to HDMI transmitter */
++		pinctrl-single,pins = <
++			/* data pins */
++			0x19c 0x2a      /* mcasp0_ahclkr.mcasp0_axr2, MUX_MODE2 | PIN_INPUT(/OUTPUT) */
++		>;
++	};
++
++	i2c1_pins: pinmux_bb_i2c1_pins {
++		pinctrl-single,pins = <
++			0x158 0x72
++			0x15c 0x72
++		>;
++	};
++};
++
++/* Enable McASP. Default parameters can be changed during run-time. */
++&mcasp0 {
++	status = "okay";
++	op-mode = <0>;          /* MCASP_IIS_MODE */
++	tdm-slots = <2>;
++	num-serializer = <4>;
++	serial-dir = <  /* 0: INACTIVE, 1: TX, 2: RX */
++		1 1 1 1
++	>;
++	tx-num-evt = <16>;
++	rx-num-evt = <1>;
++};
++
++/* Enable ADC driver. */
++&tscadc {
++	status = "okay";
++};
++
++/* (Hermes-BBB) A digital volume pot is connected to the AIN4. */
++&am335x_adc {
++	ti,adc-channels = <4>;
++};
++
++/* (Hermes-BBB) The I2C1 for isolated I2C access. */
++&i2c1 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c1_pins>;
++	clock-frequency = <100000>;
++};
+diff -urpN linux-custom_orig/arch/arm/boot/dts/am33xx-overlay-edma-fix.dtsi linux-custom/arch/arm/boot/dts/am33xx-overlay-edma-fix.dtsi
+--- linux-custom_orig/arch/arm/boot/dts/am33xx-overlay-edma-fix.dtsi	1970-01-01 03:00:00.000000000 +0300
++++ linux-custom/arch/arm/boot/dts/am33xx-overlay-edma-fix.dtsi	2022-01-15 10:52:26.982127441 +0300
+@@ -0,0 +1,25 @@
++/*
++ * Device Tree Source for AM33xx Overlay EDMA fixes
++ *
++ * Copyright (C) 2015 Robert Nelson <robertcnelson@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++&spi0 {
++	status = "okay";
++};
++
++&spi1 {
++	status = "okay";
++};
++
++&mcasp0 {
++	status = "okay";
++};
++
++&mcasp1 {
++	status = "okay";
++};
+diff -urpN linux-custom_orig/arch/arm/boot/dts/Makefile linux-custom/arch/arm/boot/dts/Makefile
+--- linux-custom_orig/arch/arm/boot/dts/Makefile	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/arch/arm/boot/dts/Makefile	2022-01-15 10:52:26.982127441 +0300
+@@ -595,7 +595,9 @@ dtb-$(CONFIG_SOC_AM33XX) += \
+ 	am335x-shc.dtb \
+ 	am335x-sbc-t335.dtb \
+ 	am335x-sl50.dtb \
+-	am335x-wega-rdk.dtb
++	am335x-wega-rdk.dtb \
++        am335x-boneblack-botic.dtb \
++        am335x-boneblack-botic-sabre32.dtb 
+ dtb-$(CONFIG_ARCH_OMAP4) += \
+ 	omap4-duovero-parlor.dtb \
+ 	omap4-kc1.dtb \
+diff -urpN linux-custom_orig/include/sound/pcm.h linux-custom/include/sound/pcm.h
+--- linux-custom_orig/include/sound/pcm.h	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/include/sound/pcm.h	2022-01-15 10:52:26.986127456 +0300
+@@ -129,6 +129,10 @@ struct snd_pcm_ops {
+ #define SNDRV_PCM_RATE_96000		(1<<10)		/* 96000Hz */
+ #define SNDRV_PCM_RATE_176400		(1<<11)		/* 176400Hz */
+ #define SNDRV_PCM_RATE_192000		(1<<12)		/* 192000Hz */
++#define SNDRV_PCM_RATE_352800		(1<<13)		/* 352800Hz */
++#define SNDRV_PCM_RATE_384000		(1<<14)		/* 384000Hz */
++#define SNDRV_PCM_RATE_705600		(1<<15)		/* 705600Hz */
++#define SNDRV_PCM_RATE_768000		(1<<16)		/* 768000Hz */
+ 
+ #define SNDRV_PCM_RATE_CONTINUOUS	(1<<30)		/* continuous range */
+ #define SNDRV_PCM_RATE_KNOT		(1<<31)		/* supports more non-continuos rates */
+@@ -141,6 +145,10 @@ struct snd_pcm_ops {
+ 					 SNDRV_PCM_RATE_88200|SNDRV_PCM_RATE_96000)
+ #define SNDRV_PCM_RATE_8000_192000	(SNDRV_PCM_RATE_8000_96000|SNDRV_PCM_RATE_176400|\
+ 					 SNDRV_PCM_RATE_192000)
++#define SNDRV_PCM_RATE_8000_384000	(SNDRV_PCM_RATE_8000_192000|SNDRV_PCM_RATE_352800|\
++					 SNDRV_PCM_RATE_384000)
++#define SNDRV_PCM_RATE_8000_768000	(SNDRV_PCM_RATE_8000_384000|SNDRV_PCM_RATE_705600|\
++					 SNDRV_PCM_RATE_768000)
+ #define _SNDRV_PCM_FMTBIT(fmt)		(1ULL << (__force int)SNDRV_PCM_FORMAT_##fmt)
+ #define SNDRV_PCM_FMTBIT_S8		_SNDRV_PCM_FMTBIT(S8)
+ #define SNDRV_PCM_FMTBIT_U8		_SNDRV_PCM_FMTBIT(U8)
+diff -urpN linux-custom_orig/include/sound/soc-dai.h linux-custom/include/sound/soc-dai.h
+--- linux-custom_orig/include/sound/soc-dai.h	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/include/sound/soc-dai.h	2022-01-15 10:52:26.998127505 +0300
+@@ -33,6 +33,8 @@ struct snd_compr_stream;
+ #define SND_SOC_DAIFMT_DSP_B		5 /* L data MSB during FRM LRC */
+ #define SND_SOC_DAIFMT_AC97		6 /* AC97 */
+ #define SND_SOC_DAIFMT_PDM		7 /* Pulse density modulation */
++#define SND_SOC_DAIFMT_DIT		8 /* Digital Audio Interface Transmit
++					     (S/PDIF, AES-3, or IEC-60958 format) */
+ 
+ /* left and right justified also known as MSB and LSB respectively */
+ #define SND_SOC_DAIFMT_MSB		SND_SOC_DAIFMT_LEFT_J
+diff -urpN linux-custom_orig/sound/soc/codecs/botic-codec.c linux-custom/sound/soc/codecs/botic-codec.c
+--- linux-custom_orig/sound/soc/codecs/botic-codec.c	1970-01-01 03:00:00.000000000 +0300
++++ linux-custom/sound/soc/codecs/botic-codec.c	2019-06-27 16:54:00.000000000 +0300
+@@ -0,0 +1,122 @@
++/*
++ * ASoC simple sound codec support
++ *
++ * Miroslav Rudisin <miero@seznam.cz>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/of_platform.h>
++#include <sound/core.h>
++#include <sound/pcm.h>
++#include <sound/soc.h>
++
++#define BOTIC_CODEC_NAME "botic-codec"
++#define BOTIC_CODEC_DAI_NAME "botic-hifi"
++
++#define BOTIC_RATES (\
++            SNDRV_PCM_RATE_CONTINUOUS | \
++            SNDRV_PCM_RATE_11025 | \
++            SNDRV_PCM_RATE_22050 | \
++            SNDRV_PCM_RATE_44100 | \
++            SNDRV_PCM_RATE_88200 | \
++            SNDRV_PCM_RATE_176400 | \
++            SNDRV_PCM_RATE_352800 | \
++            SNDRV_PCM_RATE_705600 | \
++            SNDRV_PCM_RATE_16000 | \
++            SNDRV_PCM_RATE_32000 | \
++            SNDRV_PCM_RATE_48000 | \
++            SNDRV_PCM_RATE_96000 | \
++            SNDRV_PCM_RATE_192000 | \
++            SNDRV_PCM_RATE_384000 | \
++            SNDRV_PCM_RATE_768000 | \
++            0)
++
++#define BOTIC_FORMATS (\
++            SNDRV_PCM_FMTBIT_S16_LE | \
++            SNDRV_PCM_FMTBIT_S24_3LE | \
++            SNDRV_PCM_FMTBIT_S24_LE | \
++            SNDRV_PCM_FMTBIT_S32_LE | \
++            SNDRV_PCM_FMTBIT_DSD_U16_LE | \
++            SNDRV_PCM_FMTBIT_DSD_U32_LE | \
++            0)
++
++static struct snd_soc_dai_driver botic_codec_dai = {
++    .name = BOTIC_CODEC_DAI_NAME,
++    .playback = {
++        .channels_min = 2,
++        .channels_max = 8,
++        .rate_min = 11025,
++        .rate_max = 768000,
++        .rates = BOTIC_RATES,
++        .formats = BOTIC_FORMATS,
++    },
++    .capture = {
++        .channels_min = 2,
++        .channels_max = 8,
++        .rate_min = 11025,
++        .rate_max = 768000,
++        .rates = BOTIC_RATES,
++        .formats = BOTIC_FORMATS,
++    },
++};
++
++static const struct snd_kcontrol_new botic_codec_controls[] = {
++    /* Dummy controls for some applications that requires ALSA controls. */
++    SOC_DOUBLE("Master Playback Volume", 0, 0, 0, 32, 1),
++    SOC_SINGLE("Master Playback Switch", 1, 0, 1, 1),
++};
++
++static unsigned int botic_codec_read(struct snd_soc_codec *codec,
++        unsigned int reg)
++{
++    return 0;
++}
++
++static int botic_codec_write(struct snd_soc_codec *codec,
++        unsigned int reg, unsigned int val)
++{
++    return 0;
++}
++
++static struct snd_soc_codec_driver botic_codec_socdrv = {
++    .read = botic_codec_read,
++    .write = botic_codec_write,
++    .component_driver = {
++        .controls = botic_codec_controls,
++        .num_controls = ARRAY_SIZE(botic_codec_controls),
++    },
++};
++
++static int asoc_botic_codec_probe(struct platform_device *pdev)
++{
++    return snd_soc_register_codec(&pdev->dev,
++            &botic_codec_socdrv, &botic_codec_dai, 1);
++}
++
++#if defined(CONFIG_OF)
++static const struct of_device_id asoc_botic_codec_dt_ids[] = {
++    { .compatible = "botic-audio-codec" },
++    { },
++};
++
++MODULE_DEVICE_TABLE(of, asoc_botic_codec_dt_ids);
++#endif
++
++static struct platform_driver asoc_botic_codec_driver = {
++    .probe = asoc_botic_codec_probe,
++    .driver = {
++        .name = "asoc-botic-codec",
++        .of_match_table = of_match_ptr(asoc_botic_codec_dt_ids),
++    },
++};
++
++module_platform_driver(asoc_botic_codec_driver);
++
++MODULE_AUTHOR("Miroslav Rudisin");
++MODULE_DESCRIPTION("ASoC Botic sound codec");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:asoc-botic-codec");
+diff -urpN linux-custom_orig/sound/soc/codecs/Kconfig linux-custom/sound/soc/codecs/Kconfig
+--- linux-custom_orig/sound/soc/codecs/Kconfig	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/sound/soc/codecs/Kconfig	2016-12-10 03:13:00.000000000 +0300
+@@ -44,6 +44,7 @@ config SND_SOC_ALL_CODECS
+ 	select SND_SOC_AK5386
+ 	select SND_SOC_ALC5623 if I2C
+ 	select SND_SOC_ALC5632 if I2C
++	select SND_SOC_BOTIC_CODEC
+ 	select SND_SOC_BT_SCO
+ 	select SND_SOC_CQ0093VC if MFD_DAVINCI_VOICECODEC
+ 	select SND_SOC_CS35L32 if I2C
+@@ -92,7 +93,6 @@ config SND_SOC_ALL_CODECS
+ 	select SND_SOC_MAX9877 if I2C
+ 	select SND_SOC_MC13783 if MFD_MC13XXX
+ 	select SND_SOC_ML26124 if I2C
+-	select SND_SOC_NAU8810 if I2C
+ 	select SND_SOC_NAU8825 if I2C
+ 	select SND_SOC_HDMI_CODEC
+ 	select SND_SOC_PCM1681 if I2C
+@@ -113,10 +113,9 @@ config SND_SOC_ALL_CODECS
+ 	select SND_SOC_RT5645 if I2C
+ 	select SND_SOC_RT5651 if I2C
+ 	select SND_SOC_RT5659 if I2C
+-	select SND_SOC_RT5660 if I2C
+-	select SND_SOC_RT5663 if I2C
+ 	select SND_SOC_RT5670 if I2C
+ 	select SND_SOC_RT5677 if I2C && SPI_MASTER
++	select SND_SOC_SABRE32 if I2C
+ 	select SND_SOC_SGTL5000 if I2C
+ 	select SND_SOC_SI476X if MFD_SI476X_CORE
+ 	select SND_SOC_SIRF_AUDIO_CODEC
+@@ -135,7 +134,6 @@ config SND_SOC_ALL_CODECS
+ 	select SND_SOC_TAS5086 if I2C
+ 	select SND_SOC_TAS571X if I2C
+ 	select SND_SOC_TAS5720 if I2C
+-	select SND_SOC_TDM
+ 	select SND_SOC_TFA9879 if I2C
+ 	select SND_SOC_TLV320AIC23_I2C if I2C
+ 	select SND_SOC_TLV320AIC23_SPI if SPI_MASTER
+@@ -386,6 +384,9 @@ config SND_SOC_ALC5623
+ config SND_SOC_ALC5632
+ 	tristate
+ 
++config SND_SOC_BOTIC_CODEC
++	tristate "Botic CODEC"
++
+ config SND_SOC_BT_SCO
+ 	tristate "Dummy BT SCO codec driver"
+ 
+@@ -649,8 +650,6 @@ config SND_SOC_RL6231
+ 	default y if SND_SOC_RT5645=y
+ 	default y if SND_SOC_RT5651=y
+ 	default y if SND_SOC_RT5659=y
+-	default y if SND_SOC_RT5660=y
+-	default y if SND_SOC_RT5663=y
+ 	default y if SND_SOC_RT5670=y
+ 	default y if SND_SOC_RT5677=y
+ 	default m if SND_SOC_RT5514=m
+@@ -659,8 +658,6 @@ config SND_SOC_RL6231
+ 	default m if SND_SOC_RT5645=m
+ 	default m if SND_SOC_RT5651=m
+ 	default m if SND_SOC_RT5659=m
+-	default m if SND_SOC_RT5660=m
+-	default m if SND_SOC_RT5663=m
+ 	default m if SND_SOC_RT5670=m
+ 	default m if SND_SOC_RT5677=m
+ 
+@@ -673,7 +670,6 @@ config SND_SOC_RL6347A
+ 
+ config SND_SOC_RT286
+ 	tristate
+-	select SND_SOC_RT5663
+ 	depends on I2C
+ 
+ config SND_SOC_RT298
+@@ -706,12 +702,6 @@ config SND_SOC_RT5651
+ config SND_SOC_RT5659
+ 	tristate
+ 
+-config SND_SOC_RT5660
+-	tristate
+-
+-config SND_SOC_RT5663
+-	tristate
+-
+ config SND_SOC_RT5670
+ 	tristate
+ 
+@@ -724,6 +714,10 @@ config SND_SOC_RT5677_SPI
+ 	tristate
+ 	default SND_SOC_RT5677 && SPI
+ 
++config SND_SOC_SABRE32
++	tristate "ESS Technology Sabre32 DAC"
++	depends on I2C
++
+ #Freescale sgtl5000 codec
+ config SND_SOC_SGTL5000
+ 	tristate "Freescale SGTL5000 CODEC"
+@@ -813,9 +807,6 @@ config SND_SOC_TAS5720
+ 	  Enable support for Texas Instruments TAS5720L/M high-efficiency mono
+ 	  Class-D audio power amplifiers.
+ 
+-config SND_SOC_TDM
+-	tristate "Generic TDM codec"
+-
+ config SND_SOC_TFA9879
+ 	tristate "NXP Semiconductors TFA9879 amplifier"
+ 	depends on I2C
+@@ -1082,10 +1073,6 @@ config SND_SOC_MC13783
+ config SND_SOC_ML26124
+ 	tristate
+ 
+-config SND_SOC_NAU8810
+-	tristate "Nuvoton Technology Corporation NAU88C10 CODEC"
+-	depends on I2C
+-
+ config SND_SOC_NAU8825
+ 	tristate
+ 
+diff -urpN linux-custom_orig/sound/soc/codecs/Makefile linux-custom/sound/soc/codecs/Makefile
+--- linux-custom_orig/sound/soc/codecs/Makefile	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/sound/soc/codecs/Makefile	2016-12-10 03:13:00.000000000 +0300
+@@ -34,6 +34,7 @@ snd-soc-ak4642-objs := ak4642.o
+ snd-soc-ak4671-objs := ak4671.o
+ snd-soc-ak5386-objs := ak5386.o
+ snd-soc-arizona-objs := arizona.o
++snd-soc-botic-codec-objs := botic-codec.o
+ snd-soc-bt-sco-objs := bt-sco.o
+ snd-soc-cq93vc-objs := cq93vc.o
+ snd-soc-cs35l32-objs := cs35l32.o
+@@ -86,7 +87,6 @@ snd-soc-max9850-objs := max9850.o
+ snd-soc-max9860-objs := max9860.o
+ snd-soc-mc13783-objs := mc13783.o
+ snd-soc-ml26124-objs := ml26124.o
+-snd-soc-nau8810-objs := nau8810.o
+ snd-soc-nau8825-objs := nau8825.o
+ snd-soc-hdmi-codec-objs := hdmi-codec.o
+ snd-soc-pcm1681-objs := pcm1681.o
+@@ -113,11 +113,10 @@ snd-soc-rt5640-objs := rt5640.o
+ snd-soc-rt5645-objs := rt5645.o
+ snd-soc-rt5651-objs := rt5651.o
+ snd-soc-rt5659-objs := rt5659.o
+-snd-soc-rt5660-objs := rt5660.o
+-snd-soc-rt5663-objs := rt5663.o
+ snd-soc-rt5670-objs := rt5670.o
+ snd-soc-rt5677-objs := rt5677.o
+ snd-soc-rt5677-spi-objs := rt5677-spi.o
++snd-soc-sabre32-objs := sabre32.o
+ snd-soc-sgtl5000-objs := sgtl5000.o
+ snd-soc-alc5623-objs := alc5623.o
+ snd-soc-alc5632-objs := alc5632.o
+@@ -142,7 +141,6 @@ snd-soc-sti-sas-objs := sti-sas.o
+ snd-soc-tas5086-objs := tas5086.o
+ snd-soc-tas571x-objs := tas571x.o
+ snd-soc-tas5720-objs := tas5720.o
+-snd-soc-tdm-objs := tdm.o
+ snd-soc-tfa9879-objs := tfa9879.o
+ snd-soc-tlv320aic23-objs := tlv320aic23.o
+ snd-soc-tlv320aic23-i2c-objs := tlv320aic23-i2c.o
+@@ -260,6 +258,7 @@ obj-$(CONFIG_SND_SOC_AK5386)	+= snd-soc-
+ obj-$(CONFIG_SND_SOC_ALC5623)    += snd-soc-alc5623.o
+ obj-$(CONFIG_SND_SOC_ALC5632)	+= snd-soc-alc5632.o
+ obj-$(CONFIG_SND_SOC_ARIZONA)	+= snd-soc-arizona.o
++obj-$(CONFIG_SND_SOC_BOTIC_CODEC)	+= snd-soc-botic-codec.o
+ obj-$(CONFIG_SND_SOC_BT_SCO)	+= snd-soc-bt-sco.o
+ obj-$(CONFIG_SND_SOC_CQ0093VC) += snd-soc-cq93vc.o
+ obj-$(CONFIG_SND_SOC_CS35L32)	+= snd-soc-cs35l32.o
+@@ -311,7 +310,6 @@ obj-$(CONFIG_SND_SOC_MAX9850)	+= snd-soc
+ obj-$(CONFIG_SND_SOC_MAX9860)	+= snd-soc-max9860.o
+ obj-$(CONFIG_SND_SOC_MC13783)	+= snd-soc-mc13783.o
+ obj-$(CONFIG_SND_SOC_ML26124)	+= snd-soc-ml26124.o
+-obj-$(CONFIG_SND_SOC_NAU8810)   += snd-soc-nau8810.o
+ obj-$(CONFIG_SND_SOC_NAU8825)   += snd-soc-nau8825.o
+ obj-$(CONFIG_SND_SOC_HDMI_CODEC)	+= snd-soc-hdmi-codec.o
+ obj-$(CONFIG_SND_SOC_PCM1681)	+= snd-soc-pcm1681.o
+@@ -338,11 +336,10 @@ obj-$(CONFIG_SND_SOC_RT5640)	+= snd-soc-
+ obj-$(CONFIG_SND_SOC_RT5645)	+= snd-soc-rt5645.o
+ obj-$(CONFIG_SND_SOC_RT5651)	+= snd-soc-rt5651.o
+ obj-$(CONFIG_SND_SOC_RT5659)	+= snd-soc-rt5659.o
+-obj-$(CONFIG_SND_SOC_RT5660)	+= snd-soc-rt5660.o
+-obj-$(CONFIG_SND_SOC_RT5663)	+= snd-soc-rt5663.o
+ obj-$(CONFIG_SND_SOC_RT5670)	+= snd-soc-rt5670.o
+ obj-$(CONFIG_SND_SOC_RT5677)	+= snd-soc-rt5677.o
+ obj-$(CONFIG_SND_SOC_RT5677_SPI)	+= snd-soc-rt5677-spi.o
++obj-$(CONFIG_SND_SOC_SABRE32)  += snd-soc-sabre32.o
+ obj-$(CONFIG_SND_SOC_SGTL5000)  += snd-soc-sgtl5000.o
+ obj-$(CONFIG_SND_SOC_SIGMADSP)	+= snd-soc-sigmadsp.o
+ obj-$(CONFIG_SND_SOC_SIGMADSP_I2C)	+= snd-soc-sigmadsp-i2c.o
+@@ -364,7 +361,6 @@ obj-$(CONFIG_SND_SOC_TAS2552)	+= snd-soc
+ obj-$(CONFIG_SND_SOC_TAS5086)	+= snd-soc-tas5086.o
+ obj-$(CONFIG_SND_SOC_TAS571X)	+= snd-soc-tas571x.o
+ obj-$(CONFIG_SND_SOC_TAS5720)	+= snd-soc-tas5720.o
+-obj-$(CONFIG_SND_SOC_TDM)	+= snd-soc-tdm.o
+ obj-$(CONFIG_SND_SOC_TFA9879)	+= snd-soc-tfa9879.o
+ obj-$(CONFIG_SND_SOC_TLV320AIC23)	+= snd-soc-tlv320aic23.o
+ obj-$(CONFIG_SND_SOC_TLV320AIC23_I2C)	+= snd-soc-tlv320aic23-i2c.o
+diff -urpN linux-custom_orig/sound/soc/davinci/davinci-mcasp.c linux-custom/sound/soc/davinci/davinci-mcasp.c
+--- linux-custom_orig/sound/soc/davinci/davinci-mcasp.c	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/sound/soc/davinci/davinci-mcasp.c	2019-06-27 16:55:46.000000000 +0300
+@@ -28,6 +28,7 @@
+ #include <linux/of_device.h>
+ #include <linux/platform_data/davinci_asp.h>
+ #include <linux/math64.h>
++#include <linux/timer.h>
+ 
+ #include <sound/asoundef.h>
+ #include <sound/core.h>
+@@ -37,7 +38,6 @@
+ #include <sound/soc.h>
+ #include <sound/dmaengine_pcm.h>
+ #include <sound/omap-pcm.h>
+-#include <dt-bindings/sound/ti-mcasp.h>
+ 
+ #include "edma-pcm.h"
+ #include "davinci-mcasp.h"
+@@ -89,9 +89,11 @@ struct davinci_mcasp {
+ 	u8	*serial_dir;
+ 	u8	version;
+ 	u8	bclk_div;
++	bool	right_justified;
+ 	int	streams;
+ 	u32	irq_request[2];
+ 	int	dma_request[2];
++	bool	dsd_mode[2];
+ 
+ 	int	sysclk_freq;
+ 	bool	bclk_master;
+@@ -111,12 +113,14 @@ struct davinci_mcasp {
+ 
+ 	struct davinci_mcasp_ruledata ruledata[2];
+ 	struct snd_pcm_hw_constraint_list chconstr[2];
+-#if IS_ENABLED(CONFIG_DRM_OMAP_DRA7EVM_ENCODER_TPD12S015)
+-	bool	is_mcasp8;
+-	u8	hdmi_sel_gpio;
+-#endif
+ };
+ 
++static int mute_pins = 0;
++static int amanero_mute_pins = 0;
++static int amanero_mute_delay = 0;
++static struct timer_list amanero_mute_timer;
++void __iomem *amanero_mute_reg;
++
+ static inline void mcasp_set_bits(struct davinci_mcasp *mcasp, u32 offset,
+ 				  u32 val)
+ {
+@@ -149,6 +153,37 @@ static inline u32 mcasp_get_reg(struct d
+ 	return (u32)__raw_readl(mcasp->base + offset);
+ }
+ 
++void amanero_mute_timer_callback( unsigned long data )
++{
++	printk("Delayed unmuting executed.\n");
++	__raw_writel(data, amanero_mute_reg);
++}
++
++static void mute_dsd_pin(struct davinci_mcasp *mcasp, int mute) {
++	int ret;
++	u32 tread = BIT(0)>>1;
++	amanero_mute_reg = mcasp->base + DAVINCI_MCASP_PDOUT_REG;
++	if(amanero_mute_pins) {
++		if (mute) {
++			mcasp_set_bits(mcasp, DAVINCI_MCASP_PDOUT_REG, amanero_mute_pins);
++			if(amanero_mute_delay) {
++				ret = del_timer( &amanero_mute_timer );
++				if (ret) printk(KERN_NOTICE "The amanero timer is still in use...\n");
++				printk("Timer module uninstalling\n");
++			}
++		} else {
++			if(amanero_mute_delay && !timer_pending( &amanero_mute_timer )) {				
++				tread = (__raw_readl(amanero_mute_reg) & ~(amanero_mute_pins));
++				amanero_mute_timer.data = tread;
++				ret = mod_timer( &amanero_mute_timer, jiffies + msecs_to_jiffies(amanero_mute_delay) );
++				if (ret) printk(KERN_NOTICE "Error in amanero mod_timer\n");
++			} else {
++				mcasp_clr_bits(mcasp, DAVINCI_MCASP_PDOUT_REG, amanero_mute_pins);
++			}
++		}
++	}
++}
++
+ static void mcasp_set_ctl_reg(struct davinci_mcasp *mcasp, u32 ctl_reg, u32 val)
+ {
+ 	int i = 0;
+@@ -156,8 +191,6 @@ static void mcasp_set_ctl_reg(struct dav
+ 	mcasp_set_bits(mcasp, ctl_reg, val);
+ 
+ 	/* programming GBLCTL needs to read back from GBLCTL and verfiy */
+-	ctl_reg = DAVINCI_MCASP_GBLCTL_REG;
+-
+ 	/* loop count is to avoid the lock-up */
+ 	for (i = 0; i < 1000; i++) {
+ 		if ((mcasp_get_reg(mcasp, ctl_reg) & val) == val)
+@@ -243,6 +276,8 @@ static void mcasp_start_tx(struct davinc
+ 	/* enable transmit IRQs */
+ 	mcasp_set_bits(mcasp, DAVINCI_MCASP_EVTCTLX_REG,
+ 		       mcasp->irq_request[SNDRV_PCM_STREAM_PLAYBACK]);
++
++	mute_dsd_pin(mcasp, 0);
+ }
+ 
+ static void davinci_mcasp_start(struct davinci_mcasp *mcasp, int stream)
+@@ -282,6 +317,8 @@ static void mcasp_stop_tx(struct davinci
+ {
+ 	u32 val = 0;
+ 
++	mute_dsd_pin(mcasp, 1);
++
+ 	/* disable IRQ sources */
+ 	mcasp_clr_bits(mcasp, DAVINCI_MCASP_EVTCTLX_REG,
+ 		       mcasp->irq_request[SNDRV_PCM_STREAM_PLAYBACK]);
+@@ -410,6 +447,14 @@ static int davinci_mcasp_set_dai_fmt(str
+ 		return 0;
+ 
+ 	pm_runtime_get_sync(mcasp->dev);
++	if ((fmt & SND_SOC_DAIFMT_FORMAT_MASK) == SND_SOC_DAIFMT_DIT) {
++		if (mcasp->dsd_mode[SNDRV_PCM_STREAM_PLAYBACK])
++			return -EINVAL;
++		mcasp->op_mode = DAVINCI_MCASP_DIT_MODE;
++		goto out;
++	}
++	mcasp->op_mode = DAVINCI_MCASP_IIS_MODE;
++	mcasp->right_justified = false;
+ 	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
+ 	case SND_SOC_DAIFMT_DSP_A:
+ 		mcasp_clr_bits(mcasp, DAVINCI_MCASP_TXFMCTL_REG, FSXDUR);
+@@ -433,6 +478,8 @@ static int davinci_mcasp_set_dai_fmt(str
+ 		/* FS need to be inverted */
+ 		inv_fs = true;
+ 		break;
++	case SND_SOC_DAIFMT_RIGHT_J:
++		mcasp->right_justified = true;
+ 	case SND_SOC_DAIFMT_LEFT_J:
+ 		/* configure a full-word SYNC pulse (LRCLK) */
+ 		mcasp_set_bits(mcasp, DAVINCI_MCASP_TXFMCTL_REG, FSXDUR);
+@@ -550,6 +597,8 @@ out:
+ static int __davinci_mcasp_set_clkdiv(struct davinci_mcasp *mcasp, int div_id,
+ 				      int div, bool explicit)
+ {
++	int ret = 0;
++
+ 	pm_runtime_get_sync(mcasp->dev);
+ 	switch (div_id) {
+ 	case MCASP_CLKDIV_AUXCLK:			/* MCLK divider */
+@@ -560,6 +609,12 @@ static int __davinci_mcasp_set_clkdiv(st
+ 		break;
+ 
+ 	case MCASP_CLKDIV_BCLK:			/* BCLK divider */
++		if (mcasp->op_mode == DAVINCI_MCASP_DIT_MODE)
++			div /= 2;
++		if (div < 1 || 32 < div) {
++			ret = -EINVAL;
++			goto out;
++		}
+ 		mcasp_mod_bits(mcasp, DAVINCI_MCASP_ACLKXCTL_REG,
+ 			       ACLKXDIV(div - 1), ACLKXDIV_MASK);
+ 		mcasp_mod_bits(mcasp, DAVINCI_MCASP_ACLKRCTL_REG,
+@@ -579,12 +634,6 @@ static int __davinci_mcasp_set_clkdiv(st
+ 		 * tdm_slot width by dividing the the ratio by the
+ 		 * number of configured tdm slots.
+ 		 */
+-		if (mcasp->op_mode == DAVINCI_MCASP_DIT_MODE) {
+-			if (div != 128)
+-				dev_warn(mcasp->dev,
+-					"%s(): BCLK/LRCLK %d requested, must be 128 for DIT mode", __func__, div);
+-			break;
+-		}
+ 		mcasp->slot_width = div / mcasp->tdm_slots;
+ 		if (div % mcasp->tdm_slots)
+ 			dev_warn(mcasp->dev,
+@@ -593,11 +642,12 @@ static int __davinci_mcasp_set_clkdiv(st
+ 		break;
+ 
+ 	default:
+-		return -EINVAL;
++		ret = -EINVAL;
+ 	}
+ 
++out:
+ 	pm_runtime_put(mcasp->dev);
+-	return 0;
++	return ret;
+ }
+ 
+ static int davinci_mcasp_set_clkdiv(struct snd_soc_dai *dai, int div_id,
+@@ -614,38 +664,18 @@ static int davinci_mcasp_set_sysclk(stru
+ 	struct davinci_mcasp *mcasp = snd_soc_dai_get_drvdata(dai);
+ 
+ 	pm_runtime_get_sync(mcasp->dev);
+-
+-	if (dir == SND_SOC_CLOCK_IN) {
+-		switch (clk_id) {
+-		case MCASP_CLK_HCLK_AHCLK:
+-			mcasp_clr_bits(mcasp, DAVINCI_MCASP_AHCLKXCTL_REG,
+-				       AHCLKXE);
+-			mcasp_clr_bits(mcasp, DAVINCI_MCASP_AHCLKRCTL_REG,
+-				       AHCLKRE);
+-			mcasp_clr_bits(mcasp, DAVINCI_MCASP_PDIR_REG, AHCLKX);
+-			break;
+-		case MCASP_CLK_HCLK_AUXCLK:
+-			mcasp_set_bits(mcasp, DAVINCI_MCASP_AHCLKXCTL_REG,
+-				       AHCLKXE);
+-			mcasp_set_bits(mcasp, DAVINCI_MCASP_AHCLKRCTL_REG,
+-				       AHCLKRE);
+-			break;
+-		default:
+-			dev_err(mcasp->dev, "Invalid clk id: %d\n", clk_id);
+-			goto out;
+-		}
+-	} else {
+-		/* Select AUXCLK as HCLK */
++	if (dir == SND_SOC_CLOCK_OUT) {
+ 		mcasp_set_bits(mcasp, DAVINCI_MCASP_AHCLKXCTL_REG, AHCLKXE);
+ 		mcasp_set_bits(mcasp, DAVINCI_MCASP_AHCLKRCTL_REG, AHCLKRE);
+ 		mcasp_set_bits(mcasp, DAVINCI_MCASP_PDIR_REG, AHCLKX);
++	} else {
++		mcasp_clr_bits(mcasp, DAVINCI_MCASP_AHCLKXCTL_REG, AHCLKXE);
++		mcasp_clr_bits(mcasp, DAVINCI_MCASP_AHCLKRCTL_REG, AHCLKRE);
++		mcasp_clr_bits(mcasp, DAVINCI_MCASP_PDIR_REG, AHCLKX);
+ 	}
+-	/*
+-	 * When AHCLK X/R is selected to be output it means that the HCLK is
+-	 * the same clock - coming via AUXCLK.
+-	 */
++
+ 	mcasp->sysclk_freq = freq;
+-out:
++
+ 	pm_runtime_put(mcasp->dev);
+ 	return 0;
+ }
+@@ -662,7 +692,7 @@ static int davinci_mcasp_ch_constraint(s
+ 	if (mcasp->tdm_mask[stream])
+ 		slots = hweight32(mcasp->tdm_mask[stream]);
+ 
+-	for (i = 1; i <= slots; i++)
++	for (i = 2; i <= slots; i++)
+ 		list[count++] = i;
+ 
+ 	for (i = 2; i <= serializers; i++)
+@@ -729,59 +759,72 @@ static int davinci_mcasp_set_tdm_slot(st
+ }
+ 
+ static int davinci_config_channel_size(struct davinci_mcasp *mcasp,
+-				       u32 sample_width)
++				       int sample_width)
+ {
+-	u32 mask, tx_rotate, rx_rotate;
+-	u32 slot_width, fmt;
++	u32 fmt;
++	u32 tx_rotate = (sample_width / 4) & 0x7;
++	u32 mask = (1ULL << sample_width) - 1;
++	u32 slot_width = sample_width;
+ 
+ 	/*
+-	 * Sample data is always right-justified.  Apply mask and rotate right
+-	 * to left-justified.  For receive the steps are in reverse order (but
+-	 * still rotates right).
++	 * For captured data we should not rotate, inversion and masking is
++	 * enoguh to get the data to the right position:
++	 * Format	  data from bus		after reverse (XRBUF)
++	 * S16_LE:	|LSB|MSB|xxx|xxx|	|xxx|xxx|MSB|LSB|
++	 * S24_3LE:	|LSB|DAT|MSB|xxx|	|xxx|MSB|DAT|LSB|
++	 * S24_LE:	|LSB|DAT|MSB|xxx|	|xxx|MSB|DAT|LSB|
++	 * S32_LE:	|LSB|DAT|DAT|MSB|	|MSB|DAT|DAT|LSB|
+ 	 */
+-	mask = GENMASK(sample_width, 0);
+-	mcasp_set_reg(mcasp, DAVINCI_MCASP_TXMASK_REG, mask);
+-	mcasp_set_reg(mcasp, DAVINCI_MCASP_RXMASK_REG, mask);
++	u32 rx_rotate = 0;
+ 
+-	tx_rotate = sample_width;
+-	rx_rotate = -sample_width;
++	if (mcasp->op_mode == DAVINCI_MCASP_DIT_MODE) {
++		/* DIT requires data aligned to bits 23-0 */
++		tx_rotate = (tx_rotate + 2) & 0x7;
++		if (sample_width > 24) {
++			mask &= 0xffffffUL << (sample_width - 24);
++		}
++	}
+ 
+ 	/*
+-	 * For big-endian formats (everything except DIT), McASP needs the slot
+-	 * data to be left-aligned for transmit, whereas received slot data is
+-	 * delivered right-aligned:
+-	 *
+-	 *   +-----------------------------------------------+---------------+
+-	 * <--shift-out-         slot data                   |               |
+-	 *   +-----------------------------------------------+---------------+
+-	 *
+-	 *   +---------------+-----------------------------------------------+
+-	 *   |               |                   slot data        <--shift-in--
+-	 *   +---------------+-----------------------------------------------+
+-	 *
+-	 * For little-endian formats (DIT only) the reverse is true.
++	 * Setting the tdm slot width either with set_clkdiv() or
++	 * set_tdm_slot() allows us to for example send 32 bits per
++	 * channel to the codec, while only 16 of them carry audio
++	 * payload.
+ 	 */
+-	if (mcasp->op_mode == DAVINCI_MCASP_DIT_MODE) {
+-		tx_rotate -= 24;
+-		slot_width = 32;
+-		fmt = 0;  /* little endian */
+-	} else {
+-		slot_width = mcasp->slot_width ?: sample_width;
+-		rx_rotate += slot_width;
+-		fmt = TXORD;  /* big endian */
++	if (mcasp->slot_width) {
++		/*
++		 * When we have more bclk then it is needed for the
++		 * data, we need to use the rotation to move the
++		 * received samples to have correct alignment.
++		 */
++		slot_width = mcasp->slot_width;
++		rx_rotate = (slot_width - sample_width) / 4;
+ 	}
+ 
+ 	/* mapping of the XSSZ bit-field as described in the datasheet */
+-	fmt |= TXSSZ((slot_width >> 1) - 1);
++	fmt = (slot_width >> 1) - 1;
+ 
+-	tx_rotate = TXROT((tx_rotate & 31) >> 2);
+-	rx_rotate = TXROT((rx_rotate & 31) >> 2);
++	if (mcasp->right_justified) {
++		tx_rotate = 0;
++		/* TODO: RX? */
++	}
+ 
+-	if (!mcasp->dat_port)
+-		fmt |= TXSEL;
++	if (mcasp->op_mode == DAVINCI_MCASP_DIT_MODE) {
++		/* DIT requires 32-bit slot size */
++		fmt = 0xf;
++	}
+ 
+-	mcasp_mod_bits(mcasp, DAVINCI_MCASP_TXFMT_REG, fmt | tx_rotate, 0xffff);
+-	mcasp_mod_bits(mcasp, DAVINCI_MCASP_RXFMT_REG, fmt | rx_rotate, 0xffff);
++	mcasp_mod_bits(mcasp, DAVINCI_MCASP_RXFMT_REG, RXSSZ(fmt),
++			RXSSZ(0x0F));
++	mcasp_mod_bits(mcasp, DAVINCI_MCASP_TXFMT_REG, TXSSZ(fmt),
++			TXSSZ(0x0F));
++	mcasp_mod_bits(mcasp, DAVINCI_MCASP_TXFMT_REG, TXROT(tx_rotate),
++			TXROT(7));
++	mcasp_mod_bits(mcasp, DAVINCI_MCASP_RXFMT_REG, RXROT(rx_rotate),
++			RXROT(7));
++	mcasp_set_reg(mcasp, DAVINCI_MCASP_RXMASK_REG, mask);
++
++	mcasp_set_reg(mcasp, DAVINCI_MCASP_TXMASK_REG, mask);
+ 
+ 	return 0;
+ }
+@@ -793,16 +836,36 @@ static int mcasp_common_hw_param(struct
+ 	int i;
+ 	u8 tx_ser = 0;
+ 	u8 rx_ser = 0;
+-	u8 slots = mcasp->tdm_slots;
++	u8 slots = mcasp->dsd_mode[stream] ? 1 : mcasp->tdm_slots;
+ 	u8 max_active_serializers = (channels + slots - 1) / slots;
+ 	int active_serializers, numevt;
+ 	u32 reg;
++	u32 disable_pins;
++	u32 disable_pins_mask;
++
+ 	/* Default configuration */
+ 	if (mcasp->version < MCASP_VERSION_3)
+ 		mcasp_set_bits(mcasp, DAVINCI_MCASP_PWREMUMGT_REG, MCASP_SOFT);
+ 
+-	/* All PINS as McASP */
+-	mcasp_set_reg(mcasp, DAVINCI_MCASP_PFUNC_REG, 0x00000000);
++	if (stream != SNDRV_PCM_STREAM_PLAYBACK) {
++		/* do not modify receiving pins */
++		disable_pins = 0;
++		disable_pins_mask = 0;
++	} else if (mcasp->op_mode == DAVINCI_MCASP_DIT_MODE) {
++		disable_pins = AFSX | ACLKX;
++		disable_pins_mask = AFSX | ACLKX;
++	} else if (mcasp->dsd_mode[stream]) {
++		disable_pins = AFSX;
++		disable_pins_mask = AFSX | ACLKX;
++	} else {
++		/* re-enable previously disabled pins */
++		disable_pins = 0;
++		disable_pins_mask = AFSX | ACLKX;
++	}
++	mcasp_mod_bits(mcasp, DAVINCI_MCASP_PFUNC_REG, disable_pins,
++			disable_pins_mask);
++	mcasp_clr_bits(mcasp, DAVINCI_MCASP_PDOUT_REG, disable_pins);
++	mcasp_set_bits(mcasp, DAVINCI_MCASP_PDIR_REG, disable_pins);
+ 
+ 	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
+ 		mcasp_set_reg(mcasp, DAVINCI_MCASP_TXSTAT_REG, 0xFFFFFFFF);
+@@ -817,15 +880,40 @@ static int mcasp_common_hw_param(struct
+ 			       mcasp->serial_dir[i]);
+ 		if (mcasp->serial_dir[i] == TX_MODE &&
+ 					tx_ser < max_active_serializers) {
++			mcasp_clr_bits(mcasp, DAVINCI_MCASP_PFUNC_REG, AXR(i));
+ 			mcasp_set_bits(mcasp, DAVINCI_MCASP_PDIR_REG, AXR(i));
+ 			mcasp_mod_bits(mcasp, DAVINCI_MCASP_XRSRCTL_REG(i),
+ 				       DISMOD_LOW, DISMOD_MASK);
+ 			tx_ser++;
+ 		} else if (mcasp->serial_dir[i] == RX_MODE &&
+ 					rx_ser < max_active_serializers) {
++			mcasp_clr_bits(mcasp, DAVINCI_MCASP_PFUNC_REG, AXR(i));
+ 			mcasp_clr_bits(mcasp, DAVINCI_MCASP_PDIR_REG, AXR(i));
+ 			rx_ser++;
+ 		} else {
++			setup_timer( &amanero_mute_timer, amanero_mute_timer_callback, 0 );
++			mcasp_set_bits(mcasp, DAVINCI_MCASP_PDIR_REG, AXR(i));
++			if (
++					(
++						(amanero_mute_pins & AXR(i)) == 0
++						// ||
++						// (
++							// (amanero_mute_pins & AXR(i)) != 0 && ((amanero_mute_pins & BIT(24)) != 0)
++						// )
++					)
++						||
++					(
++						(mute_pins & AXR(i)) == 0
++							||
++						((mute_pins & AXR(i)) != 0 && ((mute_pins & BIT(24)) != 0))
++					)
++				)
++			{
++				mcasp_clr_bits(mcasp, DAVINCI_MCASP_PDOUT_REG, AXR(i));
++			} else {
++				mcasp_set_bits(mcasp, DAVINCI_MCASP_PDOUT_REG, AXR(i));
++			}
++			mcasp_set_bits(mcasp, DAVINCI_MCASP_PFUNC_REG, AXR(i));
+ 			mcasp_mod_bits(mcasp, DAVINCI_MCASP_XRSRCTL_REG(i),
+ 				       SRMOD_INACTIVE, SRMOD_MASK);
+ 		}
+@@ -902,6 +990,8 @@ static int mcasp_i2s_hw_param(struct dav
+ 	int total_slots;
+ 	int active_serializers;
+ 	u32 mask = 0;
++	u32 busel = 0;
++	u32 mod;
+ 
+ 	total_slots = mcasp->tdm_slots;
+ 
+@@ -937,14 +1027,27 @@ static int mcasp_i2s_hw_param(struct dav
+ 	}
+ 	mcasp_clr_bits(mcasp, DAVINCI_MCASP_ACLKXCTL_REG, TX_ASYNC);
+ 
++	if (!mcasp->dat_port)
++		busel = TXSEL;
++
++	if (mcasp->dsd_mode[stream]) {
++		mask = 1;
++		busel = 0;
++		mod = 0;
++	} else {
++		mod = total_slots;
++	}
++
+ 	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
+ 		mcasp_set_reg(mcasp, DAVINCI_MCASP_TXTDM_REG, mask);
++		mcasp_set_bits(mcasp, DAVINCI_MCASP_TXFMT_REG, busel | TXORD);
+ 		mcasp_mod_bits(mcasp, DAVINCI_MCASP_TXFMCTL_REG,
+-			       FSXMOD(total_slots), FSXMOD(0x1FF));
++			       FSXMOD(mod), FSXMOD(0x1FF));
+ 	} else if (stream == SNDRV_PCM_STREAM_CAPTURE) {
+ 		mcasp_set_reg(mcasp, DAVINCI_MCASP_RXTDM_REG, mask);
++		mcasp_set_bits(mcasp, DAVINCI_MCASP_RXFMT_REG, busel | RXORD);
+ 		mcasp_mod_bits(mcasp, DAVINCI_MCASP_RXFMCTL_REG,
+-			       FSRMOD(total_slots), FSRMOD(0x1FF));
++			       FSRMOD(mod), FSRMOD(0x1FF));
+ 		/*
+ 		 * If McASP is set to be TX/RX synchronous and the playback is
+ 		 * not running already we need to configure the TX slots in
+@@ -952,9 +1055,12 @@ static int mcasp_i2s_hw_param(struct dav
+ 		 */
+ 		if (mcasp_is_synchronous(mcasp) && !mcasp->channels)
+ 			mcasp_mod_bits(mcasp, DAVINCI_MCASP_TXFMCTL_REG,
+-				       FSXMOD(total_slots), FSXMOD(0x1FF));
++				       FSXMOD(mod), FSXMOD(0x1FF));
+ 	}
+ 
++	/* Disable the DIT */
++	mcasp_clr_bits(mcasp, DAVINCI_MCASP_TXDITCTL_REG, DITEN);
++
+ 	return 0;
+ }
+ 
+@@ -962,16 +1068,29 @@ static int mcasp_i2s_hw_param(struct dav
+ static int mcasp_dit_hw_param(struct davinci_mcasp *mcasp,
+ 			      unsigned int rate)
+ {
++	u32 busel = 0;
+ 	u32 cs_value = 0;
+ 	u8 *cs_bytes = (u8*) &cs_value;
+ 
++	if (!mcasp->dat_port)
++		busel = TXSEL;
++	mcasp_mod_bits(mcasp, DAVINCI_MCASP_TXFMT_REG, busel | FSXDLY(0),
++			TXSEL | TXORD | FSXDLY(3));
++
++	/* Set the TX format : 24 bit right rotation, 32 bit slot, Pad 0
++	   and LSB first */
++	mcasp_set_bits(mcasp, DAVINCI_MCASP_TXFMT_REG, TXROT(6) | TXSSZ(15));
++
+ 	/* Set TX frame synch : DIT Mode, 1 bit width, internal, rising edge */
+ 	mcasp_set_reg(mcasp, DAVINCI_MCASP_TXFMCTL_REG, AFSXE | FSXMOD(0x180));
+ 
+ 	/* Set the TX tdm : for all the slots */
+ 	mcasp_set_reg(mcasp, DAVINCI_MCASP_TXTDM_REG, 0xFFFFFFFF);
+ 
+-	mcasp_set_bits(mcasp, DAVINCI_MCASP_ACLKXCTL_REG, TX_ASYNC);
++	/* Set the TX clock controls : div = 1 and internal */
++	mcasp_set_bits(mcasp, DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE | TX_ASYNC);
++
++	mcasp_clr_bits(mcasp, DAVINCI_MCASP_XEVTCTL_REG, TXDATADMADIS);
+ 
+ 	/* Enable the DIT */
+ 	mcasp_set_bits(mcasp, DAVINCI_MCASP_TXDITCTL_REG, DITEN);
+@@ -1069,13 +1188,20 @@ static int davinci_mcasp_calc_clk_div(st
+ 	return error_ppm;
+ }
+ 
+-static uint mcasp_clocks_per_slot(struct davinci_mcasp *mcasp, uint width)
++static int is_dsd(snd_pcm_format_t format)
+ {
+-	if (mcasp->op_mode == DAVINCI_MCASP_DIT_MODE)
+-		return 64;
+-	if (mcasp->slot_width)
+-		return mcasp->slot_width;
+-	return width;
++	switch (format) {
++		case SNDRV_PCM_FORMAT_DSD_U16_LE:
++		case SNDRV_PCM_FORMAT_DSD_U16_BE:
++		case SNDRV_PCM_FORMAT_DSD_U32_LE:
++		case SNDRV_PCM_FORMAT_DSD_U32_BE:
++			return 1;
++			break;
++
++		default:
++			return 0;
++			break;
++	}
+ }
+ 
+ static int davinci_mcasp_hw_params(struct snd_pcm_substream *substream,
+@@ -1088,6 +1214,8 @@ static int davinci_mcasp_hw_params(struc
+ 	int period_size = params_period_size(params);
+ 	int ret;
+ 
++	mcasp->dsd_mode[substream->stream] = is_dsd(params_format(params));
++
+ 	ret = davinci_mcasp_set_dai_fmt(cpu_dai, mcasp->dai_fmt);
+ 	if (ret)
+ 		return ret;
+@@ -1097,9 +1225,12 @@ static int davinci_mcasp_hw_params(struc
+ 	 * the machine driver, we need to calculate the ratio.
+ 	 */
+ 	if (mcasp->bclk_master && mcasp->bclk_div == 0 && mcasp->sysclk_freq) {
+-		uint slots = mcasp->tdm_slots;
+-		uint rate = params_rate(params);
+-		uint sbits = mcasp_clocks_per_slot(mcasp, params_width(params));
++		int slots = mcasp->tdm_slots;
++		int rate = params_rate(params);
++		int sbits = params_width(params);
++
++		if (mcasp->slot_width)
++			sbits = mcasp->slot_width;
+ 
+ 		davinci_mcasp_calc_clk_div(mcasp, rate * sbits * slots, true);
+ 	}
+@@ -1112,8 +1243,7 @@ static int davinci_mcasp_hw_params(struc
+ 	if (mcasp->op_mode == DAVINCI_MCASP_DIT_MODE)
+ 		ret = mcasp_dit_hw_param(mcasp, params_rate(params));
+ 	else
+-		ret = mcasp_i2s_hw_param(mcasp, substream->stream,
+-					 channels);
++		ret = mcasp_i2s_hw_param(mcasp, substream->stream, channels);
+ 
+ 	if (ret)
+ 		return ret;
+@@ -1129,13 +1259,11 @@ static int davinci_mcasp_hw_params(struc
+ 		word_length = 16;
+ 		break;
+ 
+-	case SNDRV_PCM_FORMAT_U20_3LE:
+-	case SNDRV_PCM_FORMAT_S20_3LE:
+-		word_length = 20;
+-		break;
+-
+ 	case SNDRV_PCM_FORMAT_U24_3LE:
+ 	case SNDRV_PCM_FORMAT_S24_3LE:
++		word_length = 24;
++		break;
++
+ 	case SNDRV_PCM_FORMAT_U24_LE:
+ 	case SNDRV_PCM_FORMAT_S24_LE:
+ 		word_length = 24;
+@@ -1146,6 +1274,16 @@ static int davinci_mcasp_hw_params(struc
+ 		word_length = 32;
+ 		break;
+ 
++	case SNDRV_PCM_FORMAT_DSD_U16_LE:
++	case SNDRV_PCM_FORMAT_DSD_U16_BE:
++		word_length = 16;
++		break;
++
++	case SNDRV_PCM_FORMAT_DSD_U32_LE:
++	case SNDRV_PCM_FORMAT_DSD_U32_BE:
++		word_length = 32;
++		break;
++
+ 	default:
+ 		printk(KERN_WARNING "davinci-mcasp: unsupported PCM format");
+ 		return -EINVAL;
+@@ -1197,11 +1335,14 @@ static int davinci_mcasp_hw_rule_rate(st
+ 	struct davinci_mcasp_ruledata *rd = rule->private;
+ 	struct snd_interval *ri =
+ 		hw_param_interval(params, SNDRV_PCM_HW_PARAM_RATE);
+-	uint sbits = mcasp_clocks_per_slot(rd->mcasp, params_width(params));
+-	uint slots = rd->mcasp->tdm_slots;
++	int sbits = params_width(params);
++	int slots = rd->mcasp->tdm_slots;
+ 	struct snd_interval range;
+ 	int i;
+ 
++	if (rd->mcasp->slot_width)
++		sbits = rd->mcasp->slot_width;
++
+ 	snd_interval_any(&range);
+ 	range.empty = 1;
+ 
+@@ -1243,12 +1384,13 @@ static int davinci_mcasp_hw_rule_format(
+ 
+ 	snd_mask_none(&nfmt);
+ 
+-	for (i = 0; i <= SNDRV_PCM_FORMAT_LAST; i++) {
++	for (i = 0; i < SNDRV_PCM_FORMAT_LAST; i++) {
+ 		if (snd_mask_test(fmt, i)) {
+ 			uint sbits = snd_pcm_format_width(i);
+ 			int ppm;
+ 
+-			sbits = mcasp_clocks_per_slot(rd->mcasp, sbits);
++			if (rd->mcasp->slot_width)
++				sbits = rd->mcasp->slot_width;
+ 
+ 			ppm = davinci_mcasp_calc_clk_div(rd->mcasp,
+ 							 sbits * slots * rate,
+@@ -1266,6 +1408,58 @@ static int davinci_mcasp_hw_rule_format(
+ 	return snd_mask_refine(fmt, &nfmt);
+ }
+ 
++static int davinci_mcasp_set_channel_map(struct snd_soc_dai *cpu_dai,
++		unsigned int tx_num, unsigned int *tx_slot,
++		unsigned int rx_num, unsigned int *rx_slot)
++{
++	struct davinci_mcasp *mcasp = snd_soc_dai_get_drvdata(cpu_dai);
++	unsigned int chan;
++	unsigned int slot;
++
++	/*
++	 * Notice: This sets serializer map.
++	 *         There might be multiple channels on each serializer.
++	 */
++
++	/* check for validity */
++
++	for (chan = 0; chan < tx_num; chan++) {
++		slot = tx_slot[chan];
++		if (slot >= mcasp->num_serializer) {
++			return -EINVAL;
++		}
++	}
++
++	for (chan = 0; chan < rx_num; chan++) {
++		slot = rx_slot[chan];
++		if (slot >= mcasp->num_serializer) {
++			return -EINVAL;
++		}
++	}
++
++	/* update configuration of serializers */
++
++	for (slot = 0; slot < mcasp->num_serializer; slot++) {
++		mcasp->serial_dir[slot] = INACTIVE_MODE;
++	}
++
++	for (chan = 0; chan < tx_num; chan++) {
++		slot = tx_slot[chan];
++		if (slot < mcasp->num_serializer) {
++			mcasp->serial_dir[slot] = TX_MODE;
++		}
++	}
++
++	for (chan = 0; chan < rx_num; chan++) {
++		slot = rx_slot[chan];
++		if (slot < mcasp->num_serializer) {
++			mcasp->serial_dir[slot] = RX_MODE;
++		}
++	}
++
++	return 0;
++}
++
+ static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
+ 				 struct snd_soc_dai *cpu_dai)
+ {
+@@ -1321,7 +1515,7 @@ static int davinci_mcasp_startup(struct
+ 
+ 	snd_pcm_hw_constraint_minmax(substream->runtime,
+ 				     SNDRV_PCM_HW_PARAM_CHANNELS,
+-				     0, max_channels);
++				     2, max_channels);
+ 
+ 	snd_pcm_hw_constraint_list(substream->runtime,
+ 				   0, SNDRV_PCM_HW_PARAM_CHANNELS,
+@@ -1374,6 +1568,32 @@ static void davinci_mcasp_shutdown(struc
+ 		mcasp->channels = 0;
+ }
+ 
++static int davinci_mcasp_mute_stream(struct snd_soc_dai *cpu_dai,
++				   int mute, int stream)
++{
++	
++	struct davinci_mcasp *mcasp = snd_soc_dai_get_drvdata(cpu_dai);
++	int i;
++
++	if ((((mute_pins & (~amanero_mute_pins)) & BIT(24)) != 0)) {
++		/* invert mute */
++		mute = !mute;
++	}
++
++	for (i = 0; i < mcasp->num_serializer; i++) {
++		if (((mute_pins & (~amanero_mute_pins)) & AXR(i)) != 0) {
++			if (mute) {
++				mcasp_set_bits(mcasp, DAVINCI_MCASP_PDOUT_REG, AXR(i));
++			} else {
++				mcasp_clr_bits(mcasp, DAVINCI_MCASP_PDOUT_REG, AXR(i));
++			}
++		}
++	}
++
++
++	return 0;
++}
++
+ static const struct snd_soc_dai_ops davinci_mcasp_dai_ops = {
+ 	.startup	= davinci_mcasp_startup,
+ 	.shutdown	= davinci_mcasp_shutdown,
+@@ -1383,6 +1603,8 @@ static const struct snd_soc_dai_ops davi
+ 	.set_clkdiv	= davinci_mcasp_set_clkdiv,
+ 	.set_sysclk	= davinci_mcasp_set_sysclk,
+ 	.set_tdm_slot	= davinci_mcasp_set_tdm_slot,
++	.set_channel_map	= davinci_mcasp_set_channel_map,
++	.mute_stream = davinci_mcasp_mute_stream,
+ };
+ 
+ static int davinci_mcasp_dai_probe(struct snd_soc_dai *dai)
+@@ -1463,7 +1685,7 @@ static int davinci_mcasp_resume(struct s
+ #define davinci_mcasp_resume NULL
+ #endif
+ 
+-#define DAVINCI_MCASP_RATES	SNDRV_PCM_RATE_8000_192000
++#define DAVINCI_MCASP_RATES	(SNDRV_PCM_RATE_8000_384000 | SNDRV_PCM_RATE_CONTINUOUS)
+ 
+ #define DAVINCI_MCASP_PCM_FMTS (SNDRV_PCM_FMTBIT_S8 | \
+ 				SNDRV_PCM_FMTBIT_U8 | \
+@@ -1474,7 +1696,9 @@ static int davinci_mcasp_resume(struct s
+ 				SNDRV_PCM_FMTBIT_S24_3LE | \
+ 				SNDRV_PCM_FMTBIT_U24_3LE | \
+ 				SNDRV_PCM_FMTBIT_S32_LE | \
+-				SNDRV_PCM_FMTBIT_U32_LE)
++				SNDRV_PCM_FMTBIT_U32_LE | \
++				SNDRV_PCM_FMTBIT_DSD_U16_LE | \
++				SNDRV_PCM_FMTBIT_DSD_U32_LE)
+ 
+ static struct snd_soc_dai_driver davinci_mcasp_dai[] = {
+ 	{
+@@ -1483,13 +1707,13 @@ static struct snd_soc_dai_driver davinci
+ 		.suspend	= davinci_mcasp_suspend,
+ 		.resume		= davinci_mcasp_resume,
+ 		.playback	= {
+-			.channels_min	= 1,
++			.channels_min	= 2,
+ 			.channels_max	= 32 * 16,
+ 			.rates 		= DAVINCI_MCASP_RATES,
+ 			.formats	= DAVINCI_MCASP_PCM_FMTS,
+ 		},
+ 		.capture 	= {
+-			.channels_min 	= 1,
++			.channels_min 	= 2,
+ 			.channels_max	= 32 * 16,
+ 			.rates 		= DAVINCI_MCASP_RATES,
+ 			.formats	= DAVINCI_MCASP_PCM_FMTS,
+@@ -1812,101 +2036,6 @@ static u32 davinci_mcasp_rxdma_offset(st
+ 	return offset;
+ }
+ 
+-#if IS_ENABLED(CONFIG_DRM_OMAP_DRA7EVM_ENCODER_TPD12S015)
+-#define DRA7_MCASP_HDMI_SEL_GPIO	(1 << 2)
+-int dra7_mcasp_hdmi_gpio_get(struct platform_device *pdev)
+-{
+-	struct davinci_mcasp *mcasp;
+-
+-	if (!pdev)
+-		return -EPROBE_DEFER;
+-
+-	mcasp = dev_get_drvdata(&pdev->dev);
+-	if (!mcasp)
+-		return -EPROBE_DEFER;
+-
+-	if (!mcasp->is_mcasp8)
+-		return 0;
+-
+-	pm_runtime_get_sync(mcasp->dev);
+-
+-	/* First set the direction to output */
+-	mcasp_set_bits(mcasp, DAVINCI_MCASP_PDIR_REG,
+-		       DRA7_MCASP_HDMI_SEL_GPIO);
+-	/* then set the PDOUT */
+-	if (mcasp->hdmi_sel_gpio)
+-		mcasp_set_bits(mcasp, DAVINCI_MCASP_PDOUT_REG,
+-			       DRA7_MCASP_HDMI_SEL_GPIO);
+-	else
+-		mcasp_clr_bits(mcasp, DAVINCI_MCASP_PDOUT_REG,
+-			       DRA7_MCASP_HDMI_SEL_GPIO);
+-	/* at last, change the function to GPIO mode */
+-	mcasp_set_bits(mcasp, DAVINCI_MCASP_PFUNC_REG,
+-		       DRA7_MCASP_HDMI_SEL_GPIO);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(dra7_mcasp_hdmi_gpio_get);
+-
+-int dra7_mcasp_hdmi_gpio_put(struct platform_device *pdev)
+-{
+-	struct davinci_mcasp *mcasp;
+-
+-	if (!pdev)
+-		return -EPROBE_DEFER;
+-
+-	mcasp = dev_get_drvdata(&pdev->dev);
+-	if (!mcasp)
+-		return -EPROBE_DEFER;
+-
+-	if (!mcasp->is_mcasp8)
+-		return 0;
+-
+-	/* Set the pin as McASP pin */
+-	mcasp_clr_bits(mcasp, DAVINCI_MCASP_PFUNC_REG,
+-		       DRA7_MCASP_HDMI_SEL_GPIO);
+-
+-	pm_runtime_put_sync(mcasp->dev);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(dra7_mcasp_hdmi_gpio_put);
+-
+-int dra7_mcasp_hdmi_gpio_set(struct platform_device *pdev, bool high)
+-{
+-	struct davinci_mcasp *mcasp;
+-
+-	if (!pdev)
+-		return -EPROBE_DEFER;
+-
+-	mcasp = dev_get_drvdata(&pdev->dev);
+-	if (!mcasp)
+-		return -EPROBE_DEFER;
+-
+-	if (!mcasp->is_mcasp8)
+-		return 0;
+-
+-	if (!pm_runtime_active(mcasp->dev)) {
+-		dev_warn(mcasp->dev, "mcasp8 is not enabled!\n");
+-		return -ENODEV;
+-	}
+-
+-	if (mcasp->hdmi_sel_gpio == high)
+-		return 0;
+-
+-	mcasp->hdmi_sel_gpio = high;
+-	if (mcasp->hdmi_sel_gpio)
+-		mcasp_set_bits(mcasp, DAVINCI_MCASP_PDOUT_REG,
+-			       DRA7_MCASP_HDMI_SEL_GPIO);
+-	else
+-		mcasp_clr_bits(mcasp, DAVINCI_MCASP_PDOUT_REG,
+-			       DRA7_MCASP_HDMI_SEL_GPIO);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(dra7_mcasp_hdmi_gpio_set);
+-#endif /* CONFIG_DRM_OMAP_DRA7EVM_ENCODER_TPD12S015 */
+-
+ static int davinci_mcasp_probe(struct platform_device *pdev)
+ {
+ 	struct snd_dmaengine_dai_dma_data *dma_data;
+@@ -1945,11 +2074,6 @@ static int davinci_mcasp_probe(struct pl
+ 		}
+ 	}
+ 
+-#if IS_ENABLED(CONFIG_DRM_OMAP_DRA7EVM_ENCODER_TPD12S015)
+-	if (pdata->version == MCASP_VERSION_4 && mem->start == 0x4847c000)
+-		mcasp->is_mcasp8 = true;
+-#endif
+-
+ 	mcasp->base = devm_ioremap_resource(&pdev->dev, mem);
+ 	if (IS_ERR(mcasp->base))
+ 		return PTR_ERR(mcasp->base);
+@@ -1958,9 +2082,7 @@ static int davinci_mcasp_probe(struct pl
+ 
+ 	mcasp->op_mode = pdata->op_mode;
+ 	/* sanity check for tdm slots parameter */
+-	if (mcasp->op_mode == DAVINCI_MCASP_DIT_MODE) {
+-		mcasp->tdm_slots = 2;
+-	} else {
++	if (mcasp->op_mode == DAVINCI_MCASP_IIS_MODE) {
+ 		if (pdata->tdm_slots < 2) {
+ 			dev_err(&pdev->dev, "invalid tdm slots: %d\n",
+ 				pdata->tdm_slots);
+@@ -2097,12 +2219,12 @@ static int davinci_mcasp_probe(struct pl
+ 	 */
+ 	mcasp->chconstr[SNDRV_PCM_STREAM_PLAYBACK].list =
+ 		devm_kzalloc(mcasp->dev, sizeof(unsigned int) *
+-			     (32 + mcasp->num_serializer - 1),
++			     (32 + mcasp->num_serializer - 2),
+ 			     GFP_KERNEL);
+ 
+ 	mcasp->chconstr[SNDRV_PCM_STREAM_CAPTURE].list =
+ 		devm_kzalloc(mcasp->dev, sizeof(unsigned int) *
+-			     (32 + mcasp->num_serializer - 1),
++			     (32 + mcasp->num_serializer - 2),
+ 			     GFP_KERNEL);
+ 
+ 	if (!mcasp->chconstr[SNDRV_PCM_STREAM_PLAYBACK].list ||
+@@ -2117,31 +2239,6 @@ static int davinci_mcasp_probe(struct pl
+ 
+ 	mcasp_reparent_fck(pdev);
+ 
+-	if (mcasp->version == MCASP_VERSION_4) {
+-		u32 rev;
+-
+-		pm_runtime_get_sync(mcasp->dev);
+-		rev = mcasp_get_reg(mcasp, DAVINCI_MCASP_PID_REG) &
+-				    MCASP_V4_REV_MASK;
+-		pm_runtime_put(mcasp->dev);
+-
+-		if (rev < MCASP_V4_REV(3, 3)) {
+-			/*
+-			 * ERRATA i868: to avoid race condition between DMA and
+-			 * AFIFO events the R/WNUMEVT need to be set to be
+-			 * less-than-equal to 32 words.
+-			 */
+-			if (mcasp->txnumevt)
+-				mcasp->txnumevt = 32;
+-			if (mcasp->rxnumevt)
+-				mcasp->rxnumevt = 32;
+-
+-			if (mcasp->txnumevt || mcasp->rxnumevt)
+-				dev_info(&pdev->dev,
+-					 "ERRATA i868 workaround is enabled\n");
+-		}
+-	}
+-
+ 	ret = devm_snd_soc_register_component(&pdev->dev,
+ 					&davinci_mcasp_component,
+ 					&davinci_mcasp_dai[pdata->op_mode], 1);
+@@ -2185,6 +2282,19 @@ static int davinci_mcasp_probe(struct pl
+ 		goto err;
+ 	}
+ 
++	pm_runtime_get_sync(mcasp->dev);
++
++	/* Defaults for DIT mode (backward compatibility) */
++
++	/* Set the TX format : 24 bit right rotation, 32 bit slot, Pad 0
++	 * and LSB first */
++	mcasp_set_bits(mcasp, DAVINCI_MCASP_TXFMT_REG, TXROT(6) | TXSSZ(15));
++
++	/* Only 44100 and 48000 are valid, both have the same setting */
++	mcasp_set_bits(mcasp, DAVINCI_MCASP_AHCLKXCTL_REG, AHCLKXDIV(3));
++	
++	pm_runtime_put(mcasp->dev);
++
+ 	return 0;
+ 
+ err:
+@@ -2210,6 +2320,15 @@ static struct platform_driver davinci_mc
+ 
+ module_platform_driver(davinci_mcasp_driver);
+ 
++module_param(mute_pins, int, 0644);
++MODULE_PARM_DESC(mute_pins, "use some of McASP pins as mute pin (bits 0-3), invert mute (bit 24)");
++
++module_param(amanero_mute_pins, int, 0644);
++MODULE_PARM_DESC(amanero_mute_pins, "use some of McASP pins as mute pin (bits 0-3), no invert for now\nif assigned will override the respective mute_pins");
++
++module_param(amanero_mute_delay, int, 0644);
++MODULE_PARM_DESC(amanero_mute_pins, "configurable delay for the play pop.");
++
+ MODULE_AUTHOR("Steve Chen");
+ MODULE_DESCRIPTION("TI DAVINCI McASP SoC Interface");
+ MODULE_LICENSE("GPL");
+diff -urpN linux-custom_orig/sound/soc/davinci/davinci-mcasp.h linux-custom/sound/soc/davinci/davinci-mcasp.h
+--- linux-custom_orig/sound/soc/davinci/davinci-mcasp.h	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/sound/soc/davinci/davinci-mcasp.h	2016-12-10 03:12:17.000000000 +0300
+@@ -82,12 +82,12 @@
+ /* Serializer n Control Register */
+ #define DAVINCI_MCASP_XRSRCTL_BASE_REG	0x180
+ #define DAVINCI_MCASP_XRSRCTL_REG(n)	(DAVINCI_MCASP_XRSRCTL_BASE_REG + \
+-						((n) << 2))
++						(n << 2))
+ 
+ /* Transmit Buffer for Serializer n */
+-#define DAVINCI_MCASP_TXBUF_REG(n)	(0x200 + ((n) << 2))
++#define DAVINCI_MCASP_TXBUF_REG(n)	(0x200 + (n << 2))
+ /* Receive Buffer for Serializer n */
+-#define DAVINCI_MCASP_RXBUF_REG(n)	(0x280 + ((n) << 2))
++#define DAVINCI_MCASP_RXBUF_REG(n)	(0x280 + (n << 2))
+ 
+ /* McASP FIFO Registers */
+ #define DAVINCI_MCASP_V2_AFIFO_BASE	(0x1010)
+@@ -99,13 +99,6 @@
+ #define MCASP_RFIFOCTL_OFFSET		(0x8)
+ #define MCASP_RFIFOSTS_OFFSET		(0xc)
+ 
+-/* DAVINCI_MCASP_PID_REG - Peripheral Identification Register Bits */
+-#define MCASP_V4_REVMINOR_MASK		(0x3f)
+-#define MCASP_V4_REVMAJOR_MASK		(0x7 << 8)
+-#define MCASP_V4_REV_MASK		(MCASP_V4_REVMAJOR_MASK | \
+-					 MCASP_V4_REVMINOR_MASK)
+-#define MCASP_V4_REV(maj, min)		((maj) << 8 | (min))
+-
+ /*
+  * DAVINCI_MCASP_PWREMUMGT_REG - Power Down and Emulation Management
+  *     Register Bits
+@@ -116,7 +109,7 @@
+ /*
+  * DAVINCI_MCASP_PFUNC_REG - Pin Function / GPIO Enable Register Bits
+  */
+-#define AXR(n)		(1<<(n))
++#define AXR(n)		(1<<n)
+ #define PFUNC_AMUTE	BIT(25)
+ #define ACLKX		BIT(26)
+ #define AHCLKX		BIT(27)
+@@ -128,7 +121,7 @@
+ /*
+  * DAVINCI_MCASP_PDIR_REG - Pin Direction Register Bits
+  */
+-#define AXR(n)		(1<<(n))
++#define AXR(n)		(1<<n)
+ #define PDIR_AMUTE	BIT(25)
+ #define ACLKX		BIT(26)
+ #define AHCLKX		BIT(27)
+@@ -149,22 +142,22 @@
+  */
+ #define TXROT(val)	(val)
+ #define TXSEL		BIT(3)
+-#define TXSSZ(val)	((val)<<4)
+-#define TXPBIT(val)	((val)<<8)
+-#define TXPAD(val)	((val)<<13)
++#define TXSSZ(val)	(val<<4)
++#define TXPBIT(val)	(val<<8)
++#define TXPAD(val)	(val<<13)
+ #define TXORD		BIT(15)
+-#define FSXDLY(val)	((val)<<16)
++#define FSXDLY(val)	(val<<16)
+ 
+ /*
+  * DAVINCI_MCASP_RXFMT_REG - Receive Bitstream Format Register Bits
+  */
+ #define RXROT(val)	(val)
+ #define RXSEL		BIT(3)
+-#define RXSSZ(val)	((val)<<4)
+-#define RXPBIT(val)	((val)<<8)
+-#define RXPAD(val)	((val)<<13)
++#define RXSSZ(val)	(val<<4)
++#define RXPBIT(val)	(val<<8)
++#define RXPAD(val)	(val<<13)
+ #define RXORD		BIT(15)
+-#define FSRDLY(val)	((val)<<16)
++#define FSRDLY(val)	(val<<16)
+ 
+ /*
+  * DAVINCI_MCASP_TXFMCTL_REG -  Transmit Frame Control Register Bits
+@@ -172,7 +165,7 @@
+ #define FSXPOL		BIT(0)
+ #define AFSXE		BIT(1)
+ #define FSXDUR		BIT(4)
+-#define FSXMOD(val)	((val)<<7)
++#define FSXMOD(val)	(val<<7)
+ 
+ /*
+  * DAVINCI_MCASP_RXFMCTL_REG - Receive Frame Control Register Bits
+@@ -180,7 +173,7 @@
+ #define FSRPOL		BIT(0)
+ #define AFSRE		BIT(1)
+ #define FSRDUR		BIT(4)
+-#define FSRMOD(val)	((val)<<7)
++#define FSRMOD(val)	(val<<7)
+ 
+ /*
+  * DAVINCI_MCASP_ACLKXCTL_REG - Transmit Clock Control Register Bits
+@@ -236,17 +229,17 @@
+  */
+ #define LBEN		BIT(0)
+ #define LBORD		BIT(1)
+-#define LBGENMODE(val)	((val)<<2)
++#define LBGENMODE(val)	(val<<2)
+ 
+ /*
+  * DAVINCI_MCASP_TXTDMSLOT_REG - Transmit TDM Slot Register configuration
+  */
+-#define TXTDMS(n)	(1<<(n))
++#define TXTDMS(n)	(1<<n)
+ 
+ /*
+  * DAVINCI_MCASP_RXTDMSLOT_REG - Receive TDM Slot Register configuration
+  */
+-#define RXTDMS(n)	(1<<(n))
++#define RXTDMS(n)	(1<<n)
+ 
+ /*
+  * DAVINCI_MCASP_GBLCTL_REG -  Global Control Register Bits
+@@ -313,4 +306,9 @@
+ #define NUMEVT(x)	(((x) & 0xFF) << 8)
+ #define NUMDMA_MASK	(0xFF)
+ 
++/* clock divider IDs */
++#define MCASP_CLKDIV_AUXCLK		0 /* HCLK divider from AUXCLK */
++#define MCASP_CLKDIV_BCLK		1 /* BCLK divider from HCLK */
++#define MCASP_CLKDIV_BCLK_FS_RATIO	2 /* to set BCLK FS ration */
++
+ #endif	/* DAVINCI_MCASP_H */
+diff -urpN linux-custom_orig/sound/soc/davinci/edma-pcm.c linux-custom/sound/soc/davinci/edma-pcm.c
+--- linux-custom_orig/sound/soc/davinci/edma-pcm.c	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/sound/soc/davinci/edma-pcm.c	2016-12-10 03:13:31.000000000 +0300
+@@ -33,9 +33,9 @@ static const struct snd_pcm_hardware edm
+ 				  SNDRV_PCM_INFO_PAUSE | SNDRV_PCM_INFO_RESUME |
+ 				  SNDRV_PCM_INFO_NO_PERIOD_WAKEUP |
+ 				  SNDRV_PCM_INFO_INTERLEAVED,
+-	.buffer_bytes_max	= 128 * 1024,
+-	.period_bytes_min	= 512,
+-	.period_bytes_max	= 64 * 1024,
++	.buffer_bytes_max	= 24 * 128 * 1024,
++	.period_bytes_min	= 32,
++	.period_bytes_max	= 24 * 64 * 1024,
+ 	.periods_min		= 2,
+ 	.periods_max		= 19, /* Limit by edma dmaengine driver */
+ };
+@@ -44,7 +44,7 @@ static const struct snd_dmaengine_pcm_co
+ 	.pcm_hardware = &edma_pcm_hardware,
+ 	.prepare_slave_config = snd_dmaengine_pcm_prepare_slave_config,
+ 	.compat_filter_fn = edma_filter_fn,
+-	.prealloc_buffer_size = 128 * 1024,
++	.prealloc_buffer_size = 24 * 128 * 1024,
+ };
+ 
+ int edma_pcm_platform_register(struct device *dev)
+diff -urpN linux-custom_orig/sound/soc/davinci/justboom-dac.c linux-custom/sound/soc/davinci/justboom-dac.c
+--- linux-custom_orig/sound/soc/davinci/justboom-dac.c	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/sound/soc/davinci/justboom-dac.c	1970-01-01 03:00:00.000000000 +0300
+@@ -1,348 +0,0 @@
+-/*
+- * ASoC Driver for JustBoom DAC Sound Card
+- *
+- * Author:	Milan Neskovic
+- *		Copyright 2017
+- *		based on code by Vladimir Barinov, <vbarinov@embeddedalley.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * version 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- */
+-
+-#include <linux/module.h>
+-#include <linux/platform_device.h>
+-
+-#include <linux/of_platform.h>
+-#include <linux/clk.h>
+-#include <sound/core.h>
+-#include <sound/pcm.h>
+-#include <sound/pcm_params.h>
+-#include <sound/soc.h>
+-#include <sound/jack.h>
+-
+-#include "../codecs/pcm512x.h"
+-
+-#define JUSTBOOM_MCLK_SEL_NOCLOCK 			0
+-#define JUSTBOOM_MCLK_SEL_CLK44K1_RATE 		1
+-#define JUSTBOOM_MCLK_SEL_CLK48K_RATE 		2
+-
+-#define JUSTBOOM_PCM512x_GPIO_MASK(n) 		(0x01<<(n-1))
+-
+-struct justboom_dac_drvdata {
+-	struct clk *mclk_48k;
+-	struct clk *mclk_44k1;
+-	unsigned sysclk;
+-	unsigned char mclk_select;
+-	int clk_44k1_en_gpio;
+-	int led_gpio;
+-};
+-
+-static bool digital_gain_0db_limit = true;
+-
+-static int justboom_dac_init(struct snd_soc_pcm_runtime *rtd)
+-{
+-	struct snd_soc_codec *codec = rtd->codec;
+-	struct snd_soc_card *soc_card = rtd->card;
+-	struct justboom_dac_drvdata *drvdata =
+-		snd_soc_card_get_drvdata(soc_card);
+-	int ret;
+-	
+-	unsigned char clk_44k1_en_gpio_mask = 0;
+-	unsigned char led_gpio_mask = 
+-			JUSTBOOM_PCM512x_GPIO_MASK(drvdata->led_gpio);
+-	
+-	if (drvdata->mclk_44k1) 
+-		clk_44k1_en_gpio_mask = 
+-				JUSTBOOM_PCM512x_GPIO_MASK(drvdata->clk_44k1_en_gpio);
+-	/* initialize to low */
+-	snd_soc_update_bits(codec, PCM512x_GPIO_CONTROL_1, 
+-			clk_44k1_en_gpio_mask | led_gpio_mask, 0x00); 
+-	/* enable led gpio, clock gpio */
+-	snd_soc_update_bits(codec, PCM512x_GPIO_EN, 
+-			clk_44k1_en_gpio_mask | led_gpio_mask, 
+-			clk_44k1_en_gpio_mask | led_gpio_mask); 
+-	/* set clock enable gpio signal to register output */
+-	snd_soc_update_bits(codec, 
+-			PCM512x_GPIO_OUTPUT_1 + drvdata->clk_44k1_en_gpio - 1, 
+-			0x1f, 0x02); 
+-	/* set led gpio signal to register output */
+-	snd_soc_update_bits(codec, 
+-			PCM512x_GPIO_OUTPUT_1 + drvdata->led_gpio - 1,
+-			0x1f, 0x02);
+-			   
+-	drvdata->mclk_select = JUSTBOOM_MCLK_SEL_NOCLOCK;
+-
+-	if (digital_gain_0db_limit)
+-	{
+-		ret = snd_soc_limit_volume(soc_card, "Digital Playback Volume", 207);
+-		if (ret < 0)
+-			dev_warn(soc_card->dev, "Failed to set volume limit: %d\n", ret);
+-	}
+-
+-	return 0;
+-}
+-
+-
+-static int justboom_dac_hw_params(struct snd_pcm_substream *substream,
+-				       struct snd_pcm_hw_params *params)
+-{
+-	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+-	struct snd_soc_card *soc_card = rtd->card;
+-	struct snd_soc_codec *codec = rtd->codec;
+-	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
+-	struct snd_pcm_runtime *runtime = substream->runtime;
+-	struct justboom_dac_drvdata *drvdata =
+-		snd_soc_card_get_drvdata(soc_card);
+-	unsigned sysclk = ((struct justboom_dac_drvdata *)
+-			   snd_soc_card_get_drvdata(soc_card))->sysclk;
+-	struct snd_mask *fmt = constrs_mask(&runtime->hw_constraints,
+-					    SNDRV_PCM_HW_PARAM_FORMAT);
+-	int bclk_div, bclk_fs_div;
+-	unsigned int sample_bits =
+-		snd_pcm_format_physical_width(params_format(params));
+-	int rate = params_rate(params);
+-	int ret;
+-
+-	snd_mask_none(fmt);
+-	switch (sample_bits) {
+-		case 16: 
+-			snd_mask_set(fmt, SNDRV_PCM_FORMAT_S16_LE);
+-			break;
+-		case 24:
+-			snd_mask_set(fmt, SNDRV_PCM_FORMAT_S24_LE);
+-			break;
+-		default:
+-			snd_mask_set(fmt, SNDRV_PCM_FORMAT_S32_LE);
+-			break;
+-	}
+-	
+-	if ((rate % 8000) == 0) {
+-		drvdata->mclk_select = JUSTBOOM_MCLK_SEL_CLK48K_RATE;
+-		sysclk = clk_get_rate(drvdata->mclk_48k);
+-	} else if ((rate % 11025) == 0) {
+-		drvdata->mclk_select = JUSTBOOM_MCLK_SEL_CLK44K1_RATE;
+-		sysclk = clk_get_rate(drvdata->mclk_44k1);
+-	} else {
+-		drvdata->mclk_select = JUSTBOOM_MCLK_SEL_NOCLOCK;
+-		sysclk = 0;
+-		dev_err(soc_card->dev, "Rate %d is not supported\n", rate);	
+-		return -EINVAL;
+-	}
+-	
+-	bclk_fs_div = 64;
+-	bclk_div = sysclk / (rate * bclk_fs_div);
+-	
+-	ret = snd_soc_dai_set_clkdiv(cpu_dai, 1, bclk_div); /* set bclk */
+-	if (ret < 0)
+-		return ret;
+-	
+-	/* set BCLK/FS ratio */
+-	ret = snd_soc_dai_set_clkdiv(cpu_dai, 2, bclk_fs_div);
+-	if (ret < 0)
+-		return ret;
+-		
+-	ret = snd_soc_dai_set_sysclk(cpu_dai, 0, sysclk, SND_SOC_CLOCK_IN);
+-	if (ret < 0)
+-		return ret;
+-		
+-	/* enable system clock */
+-	if (drvdata->mclk_select == JUSTBOOM_MCLK_SEL_CLK48K_RATE) {
+-		if (drvdata->mclk_48k) 
+-			ret = clk_prepare_enable(drvdata->mclk_48k);
+-	} else if (drvdata->mclk_select == JUSTBOOM_MCLK_SEL_CLK44K1_RATE) {
+-		/* set enable gpio high to enable 44100 rate oscillator */
+-		if (drvdata->mclk_44k1) {
+-			unsigned char clk_44k1_en_gpio_mask = 
+-					JUSTBOOM_PCM512x_GPIO_MASK(drvdata->clk_44k1_en_gpio);
+-			snd_soc_update_bits(codec, PCM512x_GPIO_CONTROL_1, 
+-					clk_44k1_en_gpio_mask, clk_44k1_en_gpio_mask); 
+-		}
+-	}
+-
+-	return 0;
+-
+-}
+-
+-static int justboom_dac_startup(struct snd_pcm_substream *substream) {
+-	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+-	struct snd_soc_codec *codec = rtd->codec;
+-	struct snd_soc_card *soc_card = rtd->card;
+-	
+-	struct justboom_dac_drvdata *drvdata =
+-		snd_soc_card_get_drvdata(soc_card);
+-		
+-	/* turn on LED */
+-	snd_soc_update_bits(codec, PCM512x_GPIO_CONTROL_1, 
+-		JUSTBOOM_PCM512x_GPIO_MASK(drvdata->led_gpio), 
+-		JUSTBOOM_PCM512x_GPIO_MASK(drvdata->led_gpio));
+-		
+-	return 0;
+-}
+-
+-static void justboom_dac_shutdown(struct snd_pcm_substream *substream) {
+-	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+-	struct snd_soc_codec *codec = rtd->codec;
+-	struct snd_soc_card *soc_card = rtd->card;
+-	struct justboom_dac_drvdata *drvdata =
+-		snd_soc_card_get_drvdata(soc_card);
+-		
+-	if (drvdata->mclk_select == JUSTBOOM_MCLK_SEL_CLK48K_RATE) {
+-		 /* disable 48000 rate oscillator */
+-		clk_disable_unprepare(drvdata->mclk_48k);
+-	} else if (drvdata->mclk_select == JUSTBOOM_MCLK_SEL_CLK44K1_RATE) {
+-		/* disable 44100 rate oscillator */
+-		if (drvdata->mclk_44k1) {
+-			snd_soc_update_bits(codec, PCM512x_GPIO_CONTROL_1, 
+-				   JUSTBOOM_PCM512x_GPIO_MASK(drvdata->clk_44k1_en_gpio), 
+-				   0x00);
+-		}
+-	}
+-	drvdata->mclk_select = JUSTBOOM_MCLK_SEL_NOCLOCK;
+-	
+-	/* turn off LED */
+-	snd_soc_update_bits(codec, PCM512x_GPIO_CONTROL_1, 
+-			JUSTBOOM_PCM512x_GPIO_MASK(drvdata->led_gpio), 0x00);
+-}
+-
+-/* machine stream operations */
+-static struct snd_soc_ops justboom_dac_ops = {
+-	.hw_params = justboom_dac_hw_params,
+-	.startup = justboom_dac_startup,
+-	.shutdown = justboom_dac_shutdown,
+-};
+-
+-static struct snd_soc_dai_link justboom_dac_dai[] = {
+-{
+-	.name		= "JustBoom DAC",
+-	.stream_name	= "JustBoom HiFi",
+-	.codec_dai_name	= "pcm512x-hifi",
+-	.dai_fmt	= SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
+-				SND_SOC_DAIFMT_CBS_CFS,
+-	.ops		= &justboom_dac_ops,
+-	.init		= justboom_dac_init,
+-},
+-};
+-
+-static const struct of_device_id justboom_dac_of_match[] = {
+-	{
+-		.compatible = "justboom,justboom-dac",
+-		.data = (void *) &justboom_dac_dai,
+-	},
+-	{},
+-};
+-
+-/* audio machine driver */
+-static struct snd_soc_card justboom_dac = {
+-	.name         = "justboom_dac",
+-	.driver_name  = "JustBoomDac",
+-	.owner        = THIS_MODULE,
+-	.dai_link     = justboom_dac_dai,
+-	.num_links    = ARRAY_SIZE(justboom_dac_dai),
+-};
+-
+-static int justboom_dac_probe(struct platform_device *pdev)
+-{
+-	struct device_node *np = pdev->dev.of_node;
+-	const struct of_device_id *match =
+-		of_match_device(of_match_ptr(justboom_dac_of_match), &pdev->dev);
+-	struct snd_soc_dai_link *dai = (struct snd_soc_dai_link *)match->data;
+-	struct justboom_dac_drvdata *drvdata = NULL;
+-	struct clk *mclk_48k, *mclk_44k1;
+-	int ret = 0;
+-
+-	justboom_dac.dai_link = dai;
+-
+-	dai->codec_of_node = of_parse_phandle(np, "audio-codec", 0);
+-	if (!dai->codec_of_node) {
+-		dev_err(&pdev->dev,"No codec dt node.\n");
+-		return -EINVAL;
+-	} 
+-
+-	dai->cpu_of_node = of_parse_phandle(np, "mcasp-controller", 0);
+-	if (!dai->cpu_of_node)
+-		return -EINVAL;
+-
+-	dai->platform_of_node = dai->cpu_of_node;
+-
+-	justboom_dac.dev = &pdev->dev;
+-	ret = snd_soc_of_parse_card_name(&justboom_dac, "model");
+-	if (ret)
+-		return ret;
+-
+-	mclk_48k = devm_clk_get(&pdev->dev, "mclk_48k");
+-	if (PTR_ERR(mclk_48k) == -EPROBE_DEFER) {
+-		return -EPROBE_DEFER;
+-	} else if (IS_ERR(mclk_48k)) {
+-		dev_dbg(&pdev->dev, "mclk_48k not found.\n");
+-		mclk_48k = NULL;
+-	}
+-	
+-	mclk_44k1 = devm_clk_get(&pdev->dev, "mclk_44k1");
+-	if (PTR_ERR(mclk_44k1) == -EPROBE_DEFER) {
+-		return -EPROBE_DEFER;
+-	} else if (IS_ERR(mclk_44k1)) {
+-		dev_dbg(&pdev->dev, "mclk_44k1 not found.\n");
+-		mclk_44k1 = NULL;
+-	}
+-
+-	drvdata = devm_kzalloc(&pdev->dev, sizeof(*drvdata), GFP_KERNEL);
+-	if (!drvdata)
+-		return -ENOMEM;
+-
+-	drvdata->mclk_48k = mclk_48k;
+-	drvdata->mclk_44k1 = mclk_44k1;
+-
+-	ret = of_property_read_u32(np, "clk-44k1-rate-en-gpio", 
+-			&drvdata->clk_44k1_en_gpio);
+-	if (ret) {
+-		drvdata->clk_44k1_en_gpio = 5;
+-		dev_dbg(&pdev->dev, 
+-				"clk-44k1-rate-en-gpio not defined, using default.\n");
+-	} 
+-	
+-	ret = of_property_read_u32(np, "led-gpio", &drvdata->led_gpio);
+-	if (ret) {
+-		drvdata->clk_44k1_en_gpio = 4;
+-		dev_dbg(&pdev->dev, "led-gpio not defined, using default.\n");
+-	} 
+-	
+-	snd_soc_card_set_drvdata(&justboom_dac, drvdata);
+-	
+-	digital_gain_0db_limit = !of_property_read_bool(np, 
+-			"justboom,24db_digital_gain");
+-			
+-	ret = devm_snd_soc_register_card(&pdev->dev, &justboom_dac);
+-	if (ret)
+-		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n", ret);
+-
+-	return ret;
+-}
+-
+-static int justboom_dac_remove(struct platform_device *pdev)
+-{
+-	return snd_soc_unregister_card(&justboom_dac);
+-}
+-
+-MODULE_DEVICE_TABLE(of, justboom_dac_of_match);
+-
+-static struct platform_driver justboom_dac_driver = {
+-	.driver = {
+-		.name   = "justboom-dac",
+-		.owner  = THIS_MODULE,
+-		.of_match_table = justboom_dac_of_match,
+-	},
+-	.probe          = justboom_dac_probe,
+-	.remove         = justboom_dac_remove,
+-};
+-
+-module_platform_driver(justboom_dac_driver);
+-
+-MODULE_AUTHOR("Milan Neskovic <info@justboom.co>");
+-MODULE_DESCRIPTION("ASoC Driver for JustBoom DAC Sound Card");
+-MODULE_LICENSE("GPL v2");
+diff -urpN linux-custom_orig/sound/soc/davinci/justboom-digi.c linux-custom/sound/soc/davinci/justboom-digi.c
+--- linux-custom_orig/sound/soc/davinci/justboom-digi.c	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/sound/soc/davinci/justboom-digi.c	1970-01-01 03:00:00.000000000 +0300
+@@ -1,241 +0,0 @@
+-/*
+- * ASoC Driver for JustBoom Digi Sound Card
+- *
+- * Author:	Milan Neskovic
+- *		Copyright 2017
+- *		based on code by Daniel Matuschek <info@crazy-audio.com>
+- *		based on code by Florian Meier <florian.meier@koalo.de>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * version 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- */
+-
+-#include <linux/module.h>
+-#include <linux/platform_device.h>
+-
+-#include <sound/core.h>
+-#include <sound/pcm.h>
+-#include <sound/pcm_params.h>
+-#include <sound/soc.h>
+-#include <sound/jack.h>
+-
+-#include "../codecs/wm8804.h"
+-
+-static int justboom_digi_init(struct snd_soc_pcm_runtime *rtd)
+-{
+-	struct snd_soc_codec *codec = rtd->codec;
+-
+-	/* enable TX output */
+-	snd_soc_update_bits(codec, WM8804_PWRDN, 0x4, 0x0);
+-
+-	return 0;
+-}
+-
+-static int justboom_digi_startup(struct snd_pcm_substream *substream) {
+-	/* turn on digital output */
+-	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+-	struct snd_soc_codec *codec = rtd->codec;
+-	snd_soc_update_bits(codec, WM8804_PWRDN, 0x3c, 0x00);
+-	return 0;
+-}
+-
+-static void justboom_digi_shutdown(struct snd_pcm_substream *substream) {
+-	/* turn off output */
+-	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+-	struct snd_soc_codec *codec = rtd->codec;
+-	snd_soc_update_bits(codec, WM8804_PWRDN, 0x3c, 0x3c);
+-}
+-
+-static int justboom_digi_hw_params(struct snd_pcm_substream *substream,
+-				       struct snd_pcm_hw_params *params)
+-{
+-	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+-	struct snd_soc_dai *codec_dai = rtd->codec_dai;
+-	struct snd_soc_codec *codec = rtd->codec;
+-	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
+-	struct snd_pcm_runtime *runtime = substream->runtime;
+-	struct snd_mask *fmt = constrs_mask(&runtime->hw_constraints,
+-					    SNDRV_PCM_HW_PARAM_FORMAT);
+-	int sysclk = 27000000; /* This is fixed on this board */
+-	unsigned int sample_bits =
+-		snd_pcm_format_physical_width(params_format(params));
+-	long mclk_freq=0;
+-	int mclk_div=1;
+-	int sampling_freq=1;
+-	int samplerate;
+-	int ret;
+-	
+-	snd_mask_none(fmt);
+-	switch (sample_bits) {
+-		case 16: 
+-			snd_mask_set(fmt, SNDRV_PCM_FORMAT_S16_LE);
+-			break;
+-		case 24:
+-			snd_mask_set(fmt, SNDRV_PCM_FORMAT_S24_LE);
+-			break;
+-		default:
+-			snd_mask_set(fmt, SNDRV_PCM_FORMAT_S32_LE);
+-			break;
+-	}
+-
+-	samplerate = params_rate(params);
+-	
+-	if (samplerate<=96000) {
+-		mclk_freq=samplerate*256;
+-		mclk_div=WM8804_MCLKDIV_256FS;
+-	} else {
+-		mclk_freq=samplerate*128;
+-		mclk_div=WM8804_MCLKDIV_128FS;
+-	}
+-
+-	switch (samplerate) {
+-		case 32000:
+-			sampling_freq=0x03;
+-			break;
+-		case 44100:
+-			sampling_freq=0x00;
+-			break;
+-		case 48000:
+-			sampling_freq=0x02;
+-			break;
+-		case 88200:
+-			sampling_freq=0x08;
+-			break;
+-		case 96000:
+-			sampling_freq=0x0a;
+-			break;
+-		case 176400:
+-			sampling_freq=0x0c;
+-			break;
+-		case 192000:
+-			sampling_freq=0x0e;
+-			break;
+-		default:
+-			dev_err(codec->dev,
+-			"Failed to set WM8804 SYSCLK, unsupported samplerate %d\n",
+-			samplerate);
+-	}
+-
+-	snd_soc_dai_set_clkdiv(codec_dai, WM8804_MCLK_DIV, mclk_div);
+-	snd_soc_dai_set_pll(codec_dai, 0, 0, sysclk, mclk_freq);
+-
+-	ret = snd_soc_dai_set_sysclk(codec_dai, WM8804_TX_CLKSRC_PLL,
+-					sysclk, SND_SOC_CLOCK_OUT);
+-	if (ret < 0) {
+-		dev_err(codec->dev,
+-		"Failed to set WM8804 SYSCLK: %d\n", ret);
+-		return ret;
+-	}
+-
+-	/* Enable TX output */
+-	snd_soc_update_bits(codec, WM8804_PWRDN, 0x4, 0x0);
+-
+-	/* Power on */
+-	snd_soc_update_bits(codec, WM8804_PWRDN, 0x9, 0);
+-
+-	/* set sampling frequency status bits */
+-	snd_soc_update_bits(codec, WM8804_SPDTX4, 0x0f, sampling_freq);
+-	
+-	/* set BCLK/FS ratio */
+-	return snd_soc_dai_set_clkdiv(cpu_dai, 2, 64);
+-}
+-
+-/* machine stream operations */
+-static struct snd_soc_ops justboom_digi_ops = {
+-	.hw_params = justboom_digi_hw_params,
+-        .startup = justboom_digi_startup,
+-        .shutdown = justboom_digi_shutdown,
+-};
+-
+-static struct snd_soc_dai_link justboom_digi_dai[] = {
+-{
+-	.name		= "JustBoom Digi",
+-	.stream_name	= "JustBoom Digi HiFi", 
+-	.codec_dai_name	= "wm8804-spdif",
+-	.dai_fmt	= SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
+-				SND_SOC_DAIFMT_CBM_CFM,
+-	.ops		= &justboom_digi_ops,
+-	.init		= justboom_digi_init,
+-},
+-};
+-
+-/* audio machine driver */
+-static struct snd_soc_card justboom_digi = {
+-	.name         = "justboom_digi",
+-	.driver_name  = "JustBoomDigi",
+-	.owner        = THIS_MODULE,
+-	.dai_link     = justboom_digi_dai,
+-	.num_links    = ARRAY_SIZE(justboom_digi_dai),
+-};
+-
+-static int justboom_digi_probe(struct platform_device *pdev)
+-{
+-	int ret = 0;
+-
+-	justboom_digi.dev = &pdev->dev;
+-
+-	if (pdev->dev.of_node) {
+-	    struct device_node *i2s_node;
+-	    struct snd_soc_dai_link *dai = &justboom_digi_dai[0];
+-	    i2s_node = of_parse_phandle(pdev->dev.of_node,
+-					"i2s-controller", 0);
+-
+-	    if (i2s_node) {
+-			dai->cpu_dai_name = NULL;
+-			dai->cpu_of_node = i2s_node;
+-			dai->platform_name = NULL;
+-			dai->platform_of_node = i2s_node;
+-	    }
+-	    
+-	    dai->codec_of_node = of_parse_phandle(pdev->dev.of_node, "audio-codec", 0);
+-		if (!dai->codec_of_node) {
+-			dev_err(&pdev->dev,"No codec dt node.\n");
+-			return -EINVAL;
+-		}
+-		
+-		justboom_digi.dev = &pdev->dev;
+-		ret = snd_soc_of_parse_card_name(&justboom_digi, "model");
+-		if (ret)
+-			return ret;
+-	}
+-
+-	ret = snd_soc_register_card(&justboom_digi);
+-	if (ret && ret != -EPROBE_DEFER)
+-		dev_err(&pdev->dev,
+-			"snd_soc_register_card() failed: %d\n", ret);
+-
+-	return ret;
+-}
+-
+-static int justboom_digi_remove(struct platform_device *pdev)
+-{
+-	return snd_soc_unregister_card(&justboom_digi);
+-}
+-
+-static const struct of_device_id justboom_digi_of_match[] = {
+-	{ .compatible = "justboom,justboom-digi", },
+-	{},
+-};
+-MODULE_DEVICE_TABLE(of, justboom_digi_of_match);
+-
+-static struct platform_driver justboom_digi_driver = {
+-	.driver = {
+-		.name   = "justboom-digi",
+-		.owner  = THIS_MODULE,
+-		.of_match_table = justboom_digi_of_match,
+-	},
+-	.probe          = justboom_digi_probe,
+-	.remove         = justboom_digi_remove,
+-};
+-
+-module_platform_driver(justboom_digi_driver);
+-
+-MODULE_AUTHOR("Milan Neskovic <info@justboom.co>");
+-MODULE_DESCRIPTION("ASoC Driver for JustBoom Digi Sound Card");
+-MODULE_LICENSE("GPL v2");
+diff -urpN linux-custom_orig/sound/soc/davinci/Kconfig linux-custom/sound/soc/davinci/Kconfig
+--- linux-custom_orig/sound/soc/davinci/Kconfig	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/sound/soc/davinci/Kconfig	2016-12-10 03:12:17.000000000 +0300
+@@ -59,26 +59,6 @@ config SND_DAVINCI_SOC_EVM
+ 	  Say Y if you want to add support for SoC audio on TI
+ 	  DaVinci DM6446, DM355 or DM365 EVM platforms.
+ 
+-config SND_AM33XX_SOC_JUSTBOOM_DAC
+-	tristate "SoC Audio support for JustBoom DAC"
+-	depends on SND_EDMA_SOC && I2C
+-	select SND_SOC_PCM512x
+-	select SND_SOC_PCM512x_I2C
+-	select SND_DAVINCI_SOC_MCASP
+-	help
+-	  Say Y if you want to add support for SoC audio on
+-	  JustBoom DAC
+-
+-config SND_AM33XX_SOC_JUSTBOOM_DIGI
+-	tristate "SoC Audio support for JustBoom Digi"
+-	depends on SND_EDMA_SOC && I2C
+-	select SND_SOC_WM8804
+-	select SND_SOC_WM8804_I2C
+-	select SND_DAVINCI_SOC_MCASP
+-	help
+-	  Say Y if you want to add support for SoC audio on
+-	  JustBoom Digi
+-
+ choice
+ 	prompt "DM365 codec select"
+ 	depends on SND_DAVINCI_SOC_EVM
+diff -urpN linux-custom_orig/sound/soc/davinci/Makefile linux-custom/sound/soc/davinci/Makefile
+--- linux-custom_orig/sound/soc/davinci/Makefile	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/sound/soc/davinci/Makefile	2016-12-10 03:11:41.000000000 +0300
+@@ -13,11 +13,3 @@ obj-$(CONFIG_SND_DAVINCI_SOC_VCIF) += sn
+ snd-soc-evm-objs := davinci-evm.o
+ 
+ obj-$(CONFIG_SND_DAVINCI_SOC_GENERIC_EVM) += snd-soc-evm.o
+-
+-# JustBomm dac support
+-snd-soc-justboom-dac-objs := justboom-dac.o
+-obj-$(CONFIG_SND_AM33XX_SOC_JUSTBOOM_DAC) += snd-soc-justboom-dac.o
+-
+-# JustBomm digi support
+-snd-soc-justboom-digi-objs := justboom-digi.o
+-obj-$(CONFIG_SND_AM33XX_SOC_JUSTBOOM_DIGI) += snd-soc-justboom-digi.o
+diff -urpN linux-custom_orig/sound/soc/generic/botic-card.c linux-custom/sound/soc/generic/botic-card.c
+--- linux-custom_orig/sound/soc/generic/botic-card.c	1970-01-01 03:00:00.000000000 +0300
++++ linux-custom/sound/soc/generic/botic-card.c	2019-06-27 16:56:11.000000000 +0300
+@@ -0,0 +1,623 @@
++/*
++ * ASoC simple sound card support
++ *
++ * Miroslav Rudisin <miero@seznam.cz>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/timer.h>
++#include <linux/interrupt.h>
++#include <linux/platform_device.h>
++#include <linux/i2c.h>
++#include <linux/of_platform.h>
++#include <sound/core.h>
++#include <sound/pcm.h>
++#include <sound/soc.h>
++#include <sound/pcm_params.h>
++
++#include <asm/dma.h>
++#include <asm/mach-types.h>
++
++#include <linux/edma.h>
++#include <linux/delay.h>
++
++#include <linux/of_gpio.h>
++
++#define ENABLE_EXT_MASTERCLK_44K1 1
++#define ENABLE_EXT_MASTERCLK_48K 2
++#define ENABLE_EXT_MASTERCLK_SWITCH_INVERT 4
++#define ENABLE_EXT_MASTERCLK_SINGLE 8
++
++#define ENABLE_DSD_FORMAT_SWITCH 1
++#define ENABLE_DSD_FORMAT_SWITCH_INVERT 2
++
++static int gpio_int_masterclk_enable = -1;
++static int gpio_ext_masterclk_switch = -1;
++static int gpio_dsd_format_switch = -1;
++static int gpio_card_power_switch = -1;
++
++static char *pinconfig = "default";
++/* I (I2S only), D (DSD only), M (I2S and DSD), S (SPDIF), R (Record/Capture) */
++static char *serconfig = "MMMM";
++
++static int ext_masterclk = ENABLE_EXT_MASTERCLK_44K1 | ENABLE_EXT_MASTERCLK_48K;
++static int dsd_format_switch = ENABLE_DSD_FORMAT_SWITCH;
++static int dai_format = SND_SOC_DAIFMT_CBS_CFS | SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_I2S;
++
++static int clk_44k1 = 22579200;
++static int clk_48k = 24576000;
++static int blr_ratio = 64;
++
++static int is_dsd(snd_pcm_format_t format)
++{
++    switch (format) {
++        case SNDRV_PCM_FORMAT_DSD_U16_LE:
++        case SNDRV_PCM_FORMAT_DSD_U16_BE:
++        case SNDRV_PCM_FORMAT_DSD_U32_LE:
++        case SNDRV_PCM_FORMAT_DSD_U32_BE:
++            return 1;
++            break;
++
++        default:
++            return 0;
++            break;
++    }
++}
++
++struct botic_ser_setup {
++    int dai_fmt;
++    int nch_tx;
++    int tx_slots[4];
++    int nch_rx;
++    int rx_slots[4];
++};
++
++static int botic_setup_serializers(struct snd_soc_dai *cpu_dai,
++        snd_pcm_format_t format, struct botic_ser_setup *ser_setup)
++{
++    int n_i2s = 0;
++    int n_dsd = 0;
++    int n_spdif = 0;
++    int i;
++    int ret;
++
++    /* clear serializer setup */
++    memset(ser_setup, 0, sizeof(*ser_setup));
++
++    for (i = 0; i < 4; i++) {
++        switch (serconfig[i]) {
++            case 'I':
++                if (is_dsd(format)) continue;
++                n_i2s++;
++                break;
++            case 'D':
++                if (!is_dsd(format)) continue;
++                n_dsd++;
++                break;
++            case 'M':
++                n_i2s++;
++                n_dsd++;
++                break;
++            case 'S':
++                n_spdif++;
++                break;
++            case 'R':
++                ser_setup->rx_slots[ser_setup->nch_rx++] = i;
++                continue;
++            case '-':
++                continue;
++            default:
++                printk(KERN_ERR "botic-card: invalid character '%c'"
++                       " in serconfig\n", serconfig[i]);
++                return -EINVAL;
++                break;
++        }
++        ser_setup->tx_slots[ser_setup->nch_tx++] = i;
++    }
++
++    if (n_spdif > 0 && (n_i2s + n_dsd) != 0) {
++        printk(KERN_ERR "botic-card: SPDIF cannot be combined with other formats");
++        return -EINVAL;
++    }
++
++    if (n_dsd == 0 && is_dsd(format)) {
++        printk(KERN_ERR "botic-card: no pins for DSD playback");
++        return -EINVAL;
++    }
++
++    ret = snd_soc_dai_set_channel_map(cpu_dai, ser_setup->nch_tx,
++            ser_setup->tx_slots, ser_setup->nch_rx, ser_setup->rx_slots);
++    if (ret < 0)
++        return ret;
++
++    ser_setup->dai_fmt = dai_format;
++    if (n_spdif > 0) {
++#if 1
++        ser_setup->dai_fmt = SND_SOC_DAIFMT_DIT;
++#else
++        printk(KERN_ERR "botic-card: DIT is not supported dai format");
++        return -EINVAL;
++#endif
++    }
++
++    return 0;
++}
++
++static int botic_hw_params(struct snd_pcm_substream *substream,
++             struct snd_pcm_hw_params *params)
++{
++    struct snd_soc_pcm_runtime *rtd = substream->private_data;
++    struct snd_soc_dai *codec_dai = rtd->codec_dai;
++    struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
++    unsigned sysclk, bclk, divisor;
++    struct botic_ser_setup ser_setup;
++    int ret;
++
++    snd_pcm_format_t format = params_format(params);
++    unsigned int rate = params_rate(params);
++
++    /* setup CPU serializers */
++    ret = botic_setup_serializers(cpu_dai, format, &ser_setup);
++    if (ret < 0)
++        return ret;
++
++    /* set codec DAI configuration */
++    ret = snd_soc_dai_set_fmt(codec_dai, ser_setup.dai_fmt);
++    if ((ret < 0) && (ret != -ENOTSUPP))
++        return ret;
++
++    /* set cpu DAI configuration */
++    ret = snd_soc_dai_set_fmt(cpu_dai, ser_setup.dai_fmt);
++    if (ret < 0)
++        return ret;
++
++    /* select correct clock for requested sample rate */
++    if ((clk_44k1 != 0) && (clk_44k1 % rate == 0)) {
++        sysclk = clk_44k1;
++        if (gpio_int_masterclk_enable >= 0) {
++            gpio_set_value(gpio_int_masterclk_enable, 0);
++        }
++        if (gpio_ext_masterclk_switch >= 0) {
++            /* set level to LOW for 44k1 sampling rates */
++            gpio_set_value(gpio_ext_masterclk_switch,
++                    !!(ext_masterclk & ENABLE_EXT_MASTERCLK_SWITCH_INVERT));
++        }
++    } else if (clk_48k % rate == 0) {
++        sysclk = clk_48k;
++        if (gpio_ext_masterclk_switch >= 0) {
++            /* set level to HIGH for 48k sampling rates */
++            gpio_set_value(gpio_ext_masterclk_switch,
++                    !(ext_masterclk & ENABLE_EXT_MASTERCLK_SWITCH_INVERT));
++        }
++        if ((gpio_int_masterclk_enable >= 0) &&
++                !(ext_masterclk & ENABLE_EXT_MASTERCLK_48K)) {
++            /* 44k1 clock is disabled now, we can enable onboard clock */
++            gpio_set_value(gpio_int_masterclk_enable, 1);
++        }
++    } else if ((dai_format & SND_SOC_DAIFMT_CBM_CFM) == 0) {
++        printk("unsupported rate %d\n", rate);
++        return -EINVAL;
++    } else {
++        printk("slave rate %d\n", rate);
++        sysclk = 0;
++    }
++
++    /* setup DSD format switch */
++    if (!(dsd_format_switch & ENABLE_DSD_FORMAT_SWITCH) ||
++        (gpio_dsd_format_switch < 0)) {
++        /* DSD format switch is disabled or not available */
++    } else if (is_dsd(params_format(params))) {
++        /* DSD format switch is enabled, set level to HIGH for DSD playback */
++        gpio_set_value(gpio_dsd_format_switch,
++                !(dsd_format_switch & ENABLE_DSD_FORMAT_SWITCH_INVERT));
++    } else {
++        /* DSD format switch is enabled, set level to LOW for PCM playback */
++        gpio_set_value(gpio_dsd_format_switch,
++                !!(dsd_format_switch & ENABLE_DSD_FORMAT_SWITCH_INVERT));
++    }
++
++    /* set the codec system clock */
++    ret = snd_soc_dai_set_sysclk(codec_dai, 0, sysclk, SND_SOC_CLOCK_IN);
++    if ((ret < 0) && (ret != -ENOTSUPP))
++        return ret;
++
++    /* use the external clock */
++    ret = snd_soc_dai_set_sysclk(cpu_dai, 0, sysclk, SND_SOC_CLOCK_IN);
++    if (ret < 0) {
++        printk(KERN_WARNING "botic-card: unable to set clock to CPU; ret=%d", ret);
++        return ret;
++    }
++
++    ret = snd_soc_dai_set_clkdiv(cpu_dai, 0, 1);
++    if (ret < 0) {
++        printk(KERN_WARNING "botic-card: unsupported set_clkdiv0");
++        return ret;
++    }
++
++    if ((dai_format & SND_SOC_DAIFMT_CBM_CFM) != 0) {
++        printk("slave mode...\n");
++        return 0;
++    }
++
++    switch (params_format(params)) {
++
++        case SNDRV_PCM_FORMAT_DSD_U16_LE:
++        case SNDRV_PCM_FORMAT_DSD_U16_BE:
++            /* Clock rate for DSD matches bitrate */
++            ret = snd_soc_dai_set_clkdiv(cpu_dai, 2, 0);
++            bclk = 16 * rate;
++            break;
++
++        case SNDRV_PCM_FORMAT_DSD_U32_LE:
++        case SNDRV_PCM_FORMAT_DSD_U32_BE:
++            /* Clock rate for DSD matches bitrate */
++            ret = snd_soc_dai_set_clkdiv(cpu_dai, 2, 0);
++            bclk = 32 * rate;
++            break;
++
++        default:
++            /* PCM */
++            ret = snd_soc_dai_set_clkdiv(cpu_dai, 2, blr_ratio);
++            if (blr_ratio != 0) {
++                bclk = blr_ratio * rate;
++            } else {
++                bclk = snd_soc_params_to_bclk(params);
++            }
++            break;
++    }
++    if (ret < 0) {
++        printk(KERN_WARNING "botic-card: unsupported BCLK/LRCLK ratio");
++        return ret;
++    }
++
++    divisor = (sysclk + (bclk / 2)) / bclk;
++    ret = snd_soc_dai_set_clkdiv(cpu_dai, 1, divisor);
++    if (ret < 0) {
++        printk(KERN_WARNING "botic-card: unsupported set_clkdiv1");
++        return ret;
++    }
++
++    /* Insert delay needed for enabled clocks. */
++    udelay(50);
++
++    return 0;
++}
++
++static struct snd_soc_ops botic_ops = {
++    .hw_params = botic_hw_params,
++};
++
++/* digital audio interface glue - connects codec <--> CPU */
++static struct snd_soc_dai_link botic_dai = {
++    .name = "ExtDAC",
++    .stream_name = "external",
++    .ops = &botic_ops,
++};
++
++static struct snd_soc_card botic_card = {
++    .name = "Botic",
++    .owner = THIS_MODULE,
++    .dai_link = &botic_dai,
++    .num_links = 1,
++};
++
++static int get_optional_gpio(int *optional_gpio, struct platform_device *pdev,
++        const char *gpio_name, unsigned long gpio_flags)
++{
++    struct device_node *np = pdev->dev.of_node;
++    struct property *p;
++    int lp;
++    int ret;
++    int gpio;
++
++    p = of_find_property(np, gpio_name, &lp);
++    if (!p) {
++        dev_err(&pdev->dev, "entry for %s does not exist\n", gpio_name);
++        return -ENOENT;
++    }
++
++    if (lp == 0) {
++        *optional_gpio = -1;
++        return 0;
++    }
++
++    ret = of_get_named_gpio(np, gpio_name, 0);
++    if (ret < 0) {
++        dev_err(&pdev->dev, "failed to read GPIO for %s\n", gpio_name);
++        return ret;
++    }
++
++    gpio = ret;
++    ret = gpio_request_one(gpio, gpio_flags, gpio_name);
++    if (ret < 0) {
++        dev_err(&pdev->dev, "failed to claim GPIO for %s\n", gpio_name);
++        return ret;
++    }
++
++    *optional_gpio = gpio;
++
++    return 0;
++}
++
++static int asoc_botic_card_probe(struct platform_device *pdev)
++{
++    struct device_node *np = pdev->dev.of_node;
++    struct pinctrl *pctl;
++    struct pinctrl_state *pctl_state;
++    int ret;
++
++    /* load selected pinconfig */
++    pctl = devm_pinctrl_get(&pdev->dev);
++    if (IS_ERR(pctl)) {
++        ret = PTR_ERR(pctl);
++        goto asoc_botic_card_probe_error;
++    }
++    pctl_state = pinctrl_lookup_state(pctl, pinconfig);
++    if (IS_ERR(pctl_state)) {
++        dev_err(&pdev->dev, "unable to lookup pinconfig %s\n", pinconfig);
++        ret = PTR_ERR(pctl_state);
++        goto asoc_botic_card_probe_error;
++    }
++    ret = pinctrl_select_state(pctl, pctl_state);
++    if (ret < 0) {
++        dev_err(&pdev->dev, "unable to set pinconfig %s\n", pinconfig);
++        goto asoc_botic_card_probe_error;
++    }
++    dev_info(&pdev->dev, "using '%s' pinconfig\n", pinconfig);
++
++    /*
++     * TODO: Move GPIO handling out of the probe, if probe gets
++     * deferred, the gpio will have been claimed on previous
++     * probe and will fail on the second and susequent probes
++     */
++
++    /* request GPIO to control internal 24.576MHz oscillator */
++    ret = get_optional_gpio(&gpio_int_masterclk_enable, pdev,
++            "int-masterclk-enable", GPIOF_OUT_INIT_LOW);
++    if (ret < 0) {
++        goto asoc_botic_card_probe_error;
++    }
++
++    /* request GPIO to card power switch */
++    ret = get_optional_gpio(&gpio_card_power_switch, pdev,
++            "card-power-switch", GPIOF_OUT_INIT_LOW);
++    if (ret < 0) {
++        goto asoc_botic_card_probe_error;
++    }
++
++    if (ext_masterclk & (ENABLE_EXT_MASTERCLK_44K1 | ENABLE_EXT_MASTERCLK_48K)) {
++        /* request GPIO to switch between external 22.5792MHz and 24.576MHz oscillators */
++        ret = get_optional_gpio(&gpio_ext_masterclk_switch, pdev,
++                "ext-masterclk-switch", GPIOF_OUT_INIT_HIGH);
++        if (ret < 0) {
++            goto asoc_botic_card_probe_error;
++        }
++        switch (ext_masterclk & (ENABLE_EXT_MASTERCLK_44K1 | ENABLE_EXT_MASTERCLK_48K)) {
++            case ENABLE_EXT_MASTERCLK_44K1:
++                if (ext_masterclk & ENABLE_EXT_MASTERCLK_SINGLE) {
++                    clk_48k = 0;
++                } else {
++                    /* fallback to internal oscillator */
++                }
++                break;
++            case ENABLE_EXT_MASTERCLK_48K:
++                clk_44k1 = 0;
++                break;
++            case ENABLE_EXT_MASTERCLK_44K1 | ENABLE_EXT_MASTERCLK_48K:
++                /* use both oscillators */
++                break;
++        }
++    } else {
++        ext_masterclk = 0;
++        gpio_ext_masterclk_switch = -1;
++        /* TODO: which clock to disable */
++        clk_44k1 = 0;
++    }
++
++    if (dsd_format_switch & ENABLE_DSD_FORMAT_SWITCH) {
++        ret = get_optional_gpio(&gpio_dsd_format_switch, pdev,
++                "dsd-format-switch", GPIOF_OUT_INIT_HIGH);
++        if (ret < 0) {
++            goto asoc_botic_card_probe_error;
++        }
++    } else {
++        dsd_format_switch = 0;
++        gpio_dsd_format_switch = -1;
++    }
++
++    botic_dai.codec_of_node = of_parse_phandle(np, "audio-codec", 0);
++    if (botic_dai.codec_of_node) {
++        ret = of_property_read_string_index(np, "audio-codec-dai", 0,
++                &botic_dai.codec_dai_name);
++        if (ret < 0) {
++            goto asoc_botic_card_probe_error;
++        }
++    } else {
++        ret = -ENOENT;
++        goto asoc_botic_card_probe_error;
++    }
++
++    botic_dai.cpu_of_node = of_parse_phandle(np, "audio-port", 0);
++    if (!botic_dai.cpu_of_node) {
++        ret = -ENOENT;
++        goto asoc_botic_card_probe_error;
++    }
++
++    /* TODO */
++    botic_dai.platform_of_node = botic_dai.cpu_of_node;
++
++    botic_card.dev = &pdev->dev;
++
++    /* register card */
++    ret = snd_soc_register_card(&botic_card);
++    if (ret) {
++        dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n", ret);
++        goto asoc_botic_card_probe_error;
++    }
++
++#if 0
++    /* a hack for removing unsupported rates from the codec */
++    if (clk_44k1 == 0) {
++        botic_card.rtd[0].codec_dai->driver->playback.rates &=
++            ~(SNDRV_PCM_RATE_5512 | SNDRV_PCM_RATE_11025 |
++              SNDRV_PCM_RATE_22050 | SNDRV_PCM_RATE_44100 |
++              SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_176400 |
++              SNDRV_PCM_RATE_352800 | SNDRV_PCM_RATE_705600 |
++              0);
++    }
++    if (clk_48k == 0) {
++        botic_card.rtd[0].codec_dai->driver->playback.rates &=
++            ~(SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_16000 |
++              SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_48000 |
++              SNDRV_PCM_RATE_96000 | SNDRV_PCM_RATE_192000 |
++              SNDRV_PCM_RATE_384000 | SNDRV_PCM_RATE_768000 |
++              0);
++    }
++#endif
++
++    dev_info(&pdev->dev, "48k %s, 44k1 %s, %s format switch\n",
++            (ext_masterclk & ENABLE_EXT_MASTERCLK_48K) ? "ext" : (
++                clk_48k != 0 ? "int" : "none"),
++            (ext_masterclk & ENABLE_EXT_MASTERCLK_44K1) ? "ext" : "none",
++            (dsd_format_switch & ENABLE_DSD_FORMAT_SWITCH) ? "use" : "do not use");
++
++    if (gpio_card_power_switch >= 0) {
++        /* switch the card on */
++        gpio_set_value(gpio_card_power_switch, 1);
++    }
++
++asoc_botic_card_probe_error:
++    if (ret != 0) {
++        if (gpio_int_masterclk_enable >= 0) {
++            gpio_free(gpio_int_masterclk_enable);
++        }
++        if (gpio_card_power_switch >= 0) {
++            gpio_free(gpio_card_power_switch);
++        }
++        if (gpio_ext_masterclk_switch >= 0) {
++            gpio_free(gpio_ext_masterclk_switch);
++        }
++        if (gpio_dsd_format_switch >= 0) {
++            gpio_free(gpio_dsd_format_switch);
++        }
++    }
++
++    return ret;
++}
++
++static int asoc_botic_card_remove(struct platform_device *pdev)
++{
++    struct snd_soc_card *card = platform_get_drvdata(pdev);
++
++    snd_soc_unregister_card(card);
++
++    if (gpio_int_masterclk_enable >= 0) {
++        /* switch the oscillator off first */
++        gpio_set_value(gpio_int_masterclk_enable, 0);
++        gpio_free(gpio_int_masterclk_enable);
++    }
++    if (gpio_card_power_switch >= 0) {
++        /* switch the card off first */
++        gpio_set_value(gpio_card_power_switch, 0);
++        gpio_free(gpio_card_power_switch);
++    }
++    if (gpio_ext_masterclk_switch >= 0) {
++        gpio_free(gpio_ext_masterclk_switch);
++    }
++    if (gpio_dsd_format_switch >= 0) {
++        gpio_free(gpio_dsd_format_switch);
++    }
++
++    return 0;
++}
++
++static void asoc_botic_card_shutdown(struct platform_device *pdev)
++{
++    if (gpio_card_power_switch >= 0) {
++        /* switch the card off first */
++        gpio_set_value(gpio_card_power_switch, 0);
++        /* sleep until card will be powered down safely */
++        mdelay(1000);
++    }
++}
++
++#ifdef CONFIG_PM_SLEEP
++static int asoc_botic_card_suspend(struct platform_device *pdev, pm_message_t state)
++{
++    if (gpio_card_power_switch >= 0) {
++        /* switch the card off before going suspend */
++        gpio_set_value(gpio_card_power_switch, 0);
++    }
++
++    return 0;
++}
++
++static int asoc_botic_card_resume(struct platform_device *pdev)
++{
++    if (gpio_card_power_switch >= 0) {
++        /* switch the card on after resuming from suspend */
++        gpio_set_value(gpio_card_power_switch, 1);
++    }
++
++    return 0;
++}
++#else
++#define asoc_botic_card_suspend NULL
++#define asoc_botic_card_resume NULL
++#endif
++
++#if defined(CONFIG_OF)
++static const struct of_device_id asoc_botic_card_dt_ids[] = {
++    { .compatible = "botic-audio-card" },
++    { },
++};
++
++MODULE_DEVICE_TABLE(of, asoc_botic_card_dt_ids);
++#endif
++
++static struct platform_driver asoc_botic_card_driver = {
++    .probe = asoc_botic_card_probe,
++    .remove = asoc_botic_card_remove,
++    .shutdown = asoc_botic_card_shutdown,
++    .suspend = asoc_botic_card_suspend,
++    .resume = asoc_botic_card_resume,
++    .driver = {
++        .name = "asoc-botic-card",
++        .of_match_table = of_match_ptr(asoc_botic_card_dt_ids),
++    },
++};
++
++module_platform_driver(asoc_botic_card_driver);
++
++module_param(pinconfig, charp, 0444);
++MODULE_PARM_DESC(pinconfig, "selected pin configuration");
++
++module_param(ext_masterclk, int, 0444);
++MODULE_PARM_DESC(ext_masterclk, "available external masterclocks");
++
++module_param(dsd_format_switch, int, 0444);
++MODULE_PARM_DESC(dsd_format_switch, "mode of dsd format switch");
++
++module_param(serconfig, charp, 0644);
++MODULE_PARM_DESC(serconfig, "serializer configuration");
++
++module_param(dai_format, int, 0644);
++MODULE_PARM_DESC(dai_format, "output format and clock sources configuration");
++
++module_param(clk_44k1, int, 0644);
++MODULE_PARM_DESC(clk_44k1, "frequency of crystal for 44k1 modes");
++
++module_param(clk_48k, int, 0644);
++MODULE_PARM_DESC(clk_48k, "frequency of crystal for 48k modes");
++
++module_param(blr_ratio, int, 0644);
++MODULE_PARM_DESC(blr_ratio, "force BCLK/LRCLK ratio");
++
++MODULE_AUTHOR("Miroslav Rudisin");
++MODULE_DESCRIPTION("ASoC Botic sound card");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:asoc-botic-card");
+diff -urpN linux-custom_orig/sound/soc/generic/Kconfig linux-custom/sound/soc/generic/Kconfig
+--- linux-custom_orig/sound/soc/generic/Kconfig	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/sound/soc/generic/Kconfig	2016-12-10 03:13:32.000000000 +0300
+@@ -7,10 +7,16 @@ config SND_SIMPLE_CARD
+ 	help
+ 	  This option enables generic simple sound card support
+ 
+-config SND_SIMPLE_SCU_CARD
+-	tristate "ASoC Simple SCU sound card support"
+-	depends on OF
+-	select SND_SIMPLE_CARD_UTILS
++config SND_BOTIC_CARD
++	tristate "ASoC Botic sound card support"
+ 	help
+-	  This option enables generic simple SCU sound card support.
+-	  It supports DPCM of multi CPU single Codec system.
++	  This option enables Botic sound card support
++
++config SND_AM33XX_SOC_BOTIC
++	tristate "Botic on BeagleBone Black"
++	depends on SOC_AM33XX
++	select SND_BOTIC_CARD
++	select SND_EDMA_SOC
++	select SND_DAVINCI_SOC_MCASP
++	help
++	  Say Y or M if you want to add support for Botic on BeagleBone Black.
+diff -urpN linux-custom_orig/sound/soc/generic/Makefile linux-custom/sound/soc/generic/Makefile
+--- linux-custom_orig/sound/soc/generic/Makefile	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/sound/soc/generic/Makefile	2016-12-10 03:13:32.000000000 +0300
+@@ -1,7 +1,7 @@
+ snd-soc-simple-card-utils-objs	:= simple-card-utils.o
+ snd-soc-simple-card-objs	:= simple-card.o
+-snd-soc-simple-scu-card-objs	:= simple-scu-card.o
++snd-soc-botic-objs	:= botic-card.o
+ 
+ obj-$(CONFIG_SND_SIMPLE_CARD_UTILS)	+= snd-soc-simple-card-utils.o
+ obj-$(CONFIG_SND_SIMPLE_CARD)		+= snd-soc-simple-card.o
+-obj-$(CONFIG_SND_SIMPLE_SCU_CARD)	+= snd-soc-simple-scu-card.o
++obj-$(CONFIG_SND_BOTIC_CARD)	+= snd-soc-botic.o
+diff -urpN linux-custom_orig/sound/soc/generic/simple-card.c linux-custom/sound/soc/generic/simple-card.c
+--- linux-custom_orig/sound/soc/generic/simple-card.c	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/sound/soc/generic/simple-card.c	2016-12-10 03:12:17.000000000 +0300
+@@ -37,15 +37,13 @@ struct simple_card_data {
+ 	unsigned int mclk_fs;
+ 	struct asoc_simple_jack hp_jack;
+ 	struct asoc_simple_jack mic_jack;
+-	struct snd_soc_dai_link *dai_link;
++	struct snd_soc_dai_link dai_link[];	/* dynamically allocated */
+ };
+ 
+ #define simple_priv_to_dev(priv) ((priv)->snd_card.dev)
+-#define simple_priv_to_link(priv, i) ((priv)->snd_card.dai_link + (i))
+-#define simple_priv_to_props(priv, i) ((priv)->dai_props + (i))
++#define simple_priv_to_link(priv, i) ((priv)->snd_card.dai_link + i)
++#define simple_priv_to_props(priv, i) ((priv)->dai_props + i)
+ 
+-#define DAI	"sound-dai"
+-#define CELL	"#sound-dai-cells"
+ #define PREFIX	"simple-audio-card,"
+ 
+ #define asoc_simple_card_init_hp(card, sjack, prefix)\
+@@ -114,13 +112,13 @@ static int asoc_simple_card_startup(stru
+ 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+ 	struct simple_card_data *priv =	snd_soc_card_get_drvdata(rtd->card);
+ 	struct simple_dai_props *dai_props =
+-		simple_priv_to_props(priv, rtd->num);
++		&priv->dai_props[rtd->num];
+ 	int ret;
+ 
+ 	ret = clk_prepare_enable(dai_props->cpu_dai.clk);
+ 	if (ret)
+ 		return ret;
+-
++	
+ 	ret = clk_prepare_enable(dai_props->codec_dai.clk);
+ 	if (ret)
+ 		clk_disable_unprepare(dai_props->cpu_dai.clk);
+@@ -133,7 +131,7 @@ static void asoc_simple_card_shutdown(st
+ 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+ 	struct simple_card_data *priv =	snd_soc_card_get_drvdata(rtd->card);
+ 	struct simple_dai_props *dai_props =
+-		simple_priv_to_props(priv, rtd->num);
++		&priv->dai_props[rtd->num];
+ 
+ 	clk_disable_unprepare(dai_props->cpu_dai.clk);
+ 
+@@ -147,8 +145,7 @@ static int asoc_simple_card_hw_params(st
+ 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
+ 	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
+ 	struct simple_card_data *priv = snd_soc_card_get_drvdata(rtd->card);
+-	struct simple_dai_props *dai_props =
+-		simple_priv_to_props(priv, rtd->num);
++	struct simple_dai_props *dai_props = &priv->dai_props[rtd->num];
+ 	unsigned int mclk, mclk_fs = 0;
+ 	int ret = 0;
+ 
+@@ -180,20 +177,51 @@ static struct snd_soc_ops asoc_simple_ca
+ 	.hw_params = asoc_simple_card_hw_params,
+ };
+ 
++static int __asoc_simple_card_dai_init(struct snd_soc_dai *dai,
++				       struct asoc_simple_dai *set)
++{
++	int ret;
++
++	if (set->sysclk) {
++		ret = snd_soc_dai_set_sysclk(dai, 0, set->sysclk, 0);
++		if (ret && ret != -ENOTSUPP) {
++			dev_err(dai->dev, "simple-card: set_sysclk error\n");
++			goto err;
++		}
++	}
++
++	if (set->slots) {
++		ret = snd_soc_dai_set_tdm_slot(dai,
++					       set->tx_slot_mask,
++					       set->rx_slot_mask,
++						set->slots,
++						set->slot_width);
++		if (ret && ret != -ENOTSUPP) {
++			dev_err(dai->dev, "simple-card: set_tdm_slot error\n");
++			goto err;
++		}
++	}
++
++	ret = 0;
++
++err:
++	return ret;
++}
++
+ static int asoc_simple_card_dai_init(struct snd_soc_pcm_runtime *rtd)
+ {
+ 	struct simple_card_data *priv =	snd_soc_card_get_drvdata(rtd->card);
+ 	struct snd_soc_dai *codec = rtd->codec_dai;
+ 	struct snd_soc_dai *cpu = rtd->cpu_dai;
+-	struct simple_dai_props *dai_props =
+-		simple_priv_to_props(priv, rtd->num);
++	struct simple_dai_props *dai_props;
+ 	int ret;
+ 
+-	ret = asoc_simple_card_init_dai(codec, &dai_props->codec_dai);
++	dai_props = &priv->dai_props[rtd->num];
++	ret = __asoc_simple_card_dai_init(codec, &dai_props->codec_dai);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = asoc_simple_card_init_dai(cpu, &dai_props->cpu_dai);
++	ret = __asoc_simple_card_dai_init(cpu, &dai_props->cpu_dai);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -201,13 +229,85 @@ static int asoc_simple_card_dai_init(str
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = asoc_simple_card_init_mic(rtd->card, &priv->mic_jack, PREFIX);
++	ret = asoc_simple_card_init_mic(rtd->card, &priv->hp_jack, PREFIX);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	return 0;
+ }
+ 
++static int
++asoc_simple_card_sub_parse_of(struct device_node *np,
++			      struct asoc_simple_dai *dai,
++			      struct device_node **p_node,
++			      const char **name,
++			      int *args_count)
++{
++	struct of_phandle_args args;
++	struct clk *clk;
++	u32 val;
++	int ret;
++
++	if (!np)
++		return 0;
++
++	/*
++	 * Get node via "sound-dai = <&phandle port>"
++	 * it will be used as xxx_of_node on soc_bind_dai_link()
++	 */
++	ret = of_parse_phandle_with_args(np, "sound-dai",
++					 "#sound-dai-cells", 0, &args);
++	if (ret)
++		return ret;
++
++	*p_node = args.np;
++
++	if (args_count)
++		*args_count = args.args_count;
++
++	/* Get dai->name */
++	if (name) {
++		ret = snd_soc_of_get_dai_name(np, name);
++		if (ret < 0)
++			return ret;
++	}
++
++	if (!dai)
++		return 0;
++
++	/* Parse TDM slot */
++	ret = snd_soc_of_parse_tdm_slot(np, &dai->tx_slot_mask,
++					&dai->rx_slot_mask,
++					&dai->slots, &dai->slot_width);
++	if (ret)
++		return ret;
++
++	/*
++	 * Parse dai->sysclk come from "clocks = <&xxx>"
++	 * (if system has common clock)
++	 *  or "system-clock-frequency = <xxx>"
++	 *  or device's module clock.
++	 */
++	if (of_property_read_bool(np, "clocks")) {
++		clk = of_clk_get(np, 0);
++		if (IS_ERR(clk)) {
++			ret = PTR_ERR(clk);
++			return ret;
++		}
++
++		dai->sysclk = clk_get_rate(clk);
++		dai->clk = clk;
++	} else if (!of_property_read_u32(np, "system-clock-frequency", &val)) {
++		dai->sysclk = val;
++	} else {
++		clk = of_clk_get(args.np, 0);
++		if (!IS_ERR(clk))
++			dai->sysclk = clk_get_rate(clk);
++	}
++
++	return 0;
++}
++
+ static int asoc_simple_card_dai_link_of(struct device_node *node,
+ 					struct simple_card_data *priv,
+ 					int idx,
+@@ -216,14 +316,13 @@ static int asoc_simple_card_dai_link_of(
+ 	struct device *dev = simple_priv_to_dev(priv);
+ 	struct snd_soc_dai_link *dai_link = simple_priv_to_link(priv, idx);
+ 	struct simple_dai_props *dai_props = simple_priv_to_props(priv, idx);
+-	struct asoc_simple_dai *cpu_dai = &dai_props->cpu_dai;
+-	struct asoc_simple_dai *codec_dai = &dai_props->codec_dai;
+ 	struct device_node *cpu = NULL;
+ 	struct device_node *plat = NULL;
+ 	struct device_node *codec = NULL;
+ 	char prop[128];
+ 	char *prefix = "";
+-	int ret, single_cpu;
++	int ret, cpu_args;
++	u32 val;
+ 
+ 	/* For single DAI link & old style of DT node */
+ 	if (is_top_level_node)
+@@ -232,19 +331,13 @@ static int asoc_simple_card_dai_link_of(
+ 	snprintf(prop, sizeof(prop), "%scpu", prefix);
+ 	cpu = of_get_child_by_name(node, prop);
+ 
+-	if (!cpu) {
+-		ret = -EINVAL;
+-		dev_err(dev, "%s: Can't find %s DT node\n", __func__, prop);
+-		goto dai_link_of_err;
+-	}
+-
+ 	snprintf(prop, sizeof(prop), "%splat", prefix);
+ 	plat = of_get_child_by_name(node, prop);
+ 
+ 	snprintf(prop, sizeof(prop), "%scodec", prefix);
+ 	codec = of_get_child_by_name(node, prop);
+ 
+-	if (!codec) {
++	if (!cpu || !codec) {
+ 		ret = -EINVAL;
+ 		dev_err(dev, "%s: Can't find %s DT node\n", __func__, prop);
+ 		goto dai_link_of_err;
+@@ -255,46 +348,36 @@ static int asoc_simple_card_dai_link_of(
+ 	if (ret < 0)
+ 		goto dai_link_of_err;
+ 
+-	of_property_read_u32(node, "mclk-fs", &dai_props->mclk_fs);
+-
+-	ret = asoc_simple_card_parse_cpu(cpu, dai_link,
+-					 DAI, CELL, &single_cpu);
+-	if (ret < 0)
+-		goto dai_link_of_err;
+-
+-	ret = asoc_simple_card_parse_codec(codec, dai_link, DAI, CELL);
+-	if (ret < 0)
+-		goto dai_link_of_err;
+-
+-	ret = asoc_simple_card_parse_platform(plat, dai_link, DAI, CELL);
+-	if (ret < 0)
+-		goto dai_link_of_err;
++	if (!of_property_read_u32(node, "mclk-fs", &val))
++		dai_props->mclk_fs = val;
+ 
+-	ret = snd_soc_of_parse_tdm_slot(cpu,	&cpu_dai->tx_slot_mask,
+-						&cpu_dai->rx_slot_mask,
+-						&cpu_dai->slots,
+-						&cpu_dai->slot_width);
++	ret = asoc_simple_card_sub_parse_of(cpu, &dai_props->cpu_dai,
++					    &dai_link->cpu_of_node,
++					    &dai_link->cpu_dai_name,
++					    &cpu_args);
+ 	if (ret < 0)
+ 		goto dai_link_of_err;
+ 
+-	ret = snd_soc_of_parse_tdm_slot(codec,	&codec_dai->tx_slot_mask,
+-						&codec_dai->rx_slot_mask,
+-						&codec_dai->slots,
+-						&codec_dai->slot_width);
++	ret = asoc_simple_card_sub_parse_of(codec, &dai_props->codec_dai,
++					    &dai_link->codec_of_node,
++					    &dai_link->codec_dai_name, NULL);
+ 	if (ret < 0)
+ 		goto dai_link_of_err;
+ 
+-	ret = asoc_simple_card_parse_clk_cpu(cpu, dai_link, cpu_dai);
++	ret = asoc_simple_card_sub_parse_of(plat, NULL,
++					    &dai_link->platform_of_node,
++					    NULL, NULL);
+ 	if (ret < 0)
+ 		goto dai_link_of_err;
+ 
+-	ret = asoc_simple_card_parse_clk_codec(codec, dai_link, codec_dai);
+-	if (ret < 0)
++	if (!dai_link->cpu_dai_name || !dai_link->codec_dai_name) {
++		ret = -EINVAL;
+ 		goto dai_link_of_err;
++	}
+ 
+-	ret = asoc_simple_card_canonicalize_dailink(dai_link);
+-	if (ret < 0)
+-		goto dai_link_of_err;
++	/* Assumes platform == cpu */
++	if (!dai_link->platform_of_node)
++		dai_link->platform_of_node = dai_link->cpu_of_node;
+ 
+ 	ret = asoc_simple_card_set_dailink_name(dev, dai_link,
+ 						"%s-%s",
+@@ -315,7 +398,17 @@ static int asoc_simple_card_dai_link_of(
+ 		dai_link->codec_dai_name,
+ 		dai_props->codec_dai.sysclk);
+ 
+-	asoc_simple_card_canonicalize_cpu(dai_link, single_cpu);
++	/*
++	 * In soc_bind_dai_link() will check cpu name after
++	 * of_node matching if dai_link has cpu_dai_name.
++	 * but, it will never match if name was created by
++	 * fmt_single_name() remove cpu_dai_name if cpu_args
++	 * was 0. See:
++	 *	fmt_single_name()
++	 *	fmt_multiple_name()
++	 */
++	if (!cpu_args)
++		dai_link->cpu_dai_name = NULL;
+ 
+ dai_link_of_err:
+ 	of_node_put(cpu);
+@@ -324,54 +417,22 @@ dai_link_of_err:
+ 	return ret;
+ }
+ 
+-static int asoc_simple_card_parse_aux_devs(struct device_node *node,
+-					   struct simple_card_data *priv)
+-{
+-	struct device *dev = simple_priv_to_dev(priv);
+-	struct device_node *aux_node;
+-	int i, n, len;
+-
+-	if (!of_find_property(node, PREFIX "aux-devs", &len))
+-		return 0;		/* Ok to have no aux-devs */
+-
+-	n = len / sizeof(__be32);
+-	if (n <= 0)
+-		return -EINVAL;
+-
+-	priv->snd_card.aux_dev = devm_kzalloc(dev,
+-			n * sizeof(*priv->snd_card.aux_dev), GFP_KERNEL);
+-	if (!priv->snd_card.aux_dev)
+-		return -ENOMEM;
+-
+-	for (i = 0; i < n; i++) {
+-		aux_node = of_parse_phandle(node, PREFIX "aux-devs", i);
+-		if (!aux_node)
+-			return -EINVAL;
+-		priv->snd_card.aux_dev[i].codec_of_node = aux_node;
+-	}
+-
+-	priv->snd_card.num_aux_devs = n;
+-	return 0;
+-}
+-
+ static int asoc_simple_card_parse_of(struct device_node *node,
+ 				     struct simple_card_data *priv)
+ {
+ 	struct device *dev = simple_priv_to_dev(priv);
+-	struct device_node *dai_link;
++	u32 val;
+ 	int ret;
+ 
+ 	if (!node)
+ 		return -EINVAL;
+ 
+-	dai_link = of_get_child_by_name(node, PREFIX "dai-link");
+-
+ 	/* The off-codec widgets */
+ 	if (of_property_read_bool(node, PREFIX "widgets")) {
+ 		ret = snd_soc_of_parse_audio_simple_widgets(&priv->snd_card,
+ 					PREFIX "widgets");
+ 		if (ret)
+-			goto card_parse_end;
++			return ret;
+ 	}
+ 
+ 	/* DAPM routes */
+@@ -379,14 +440,16 @@ static int asoc_simple_card_parse_of(str
+ 		ret = snd_soc_of_parse_audio_routing(&priv->snd_card,
+ 					PREFIX "routing");
+ 		if (ret)
+-			goto card_parse_end;
++			return ret;
+ 	}
+ 
+ 	/* Factor to mclk, used in hw_params() */
+-	of_property_read_u32(node, PREFIX "mclk-fs", &priv->mclk_fs);
++	ret = of_property_read_u32(node, PREFIX "mclk-fs", &val);
++	if (ret == 0)
++		priv->mclk_fs = val;
+ 
+ 	/* Single/Muti DAI link(s) & New style of DT node */
+-	if (dai_link) {
++	if (of_get_child_by_name(node, PREFIX "dai-link")) {
+ 		struct device_node *np = NULL;
+ 		int i = 0;
+ 
+@@ -396,7 +459,7 @@ static int asoc_simple_card_parse_of(str
+ 							   i, false);
+ 			if (ret < 0) {
+ 				of_node_put(np);
+-				goto card_parse_end;
++				return ret;
+ 			}
+ 			i++;
+ 		}
+@@ -404,54 +467,65 @@ static int asoc_simple_card_parse_of(str
+ 		/* For single DAI link & old style of DT node */
+ 		ret = asoc_simple_card_dai_link_of(node, priv, 0, true);
+ 		if (ret < 0)
+-			goto card_parse_end;
++			return ret;
+ 	}
+ 
+ 	ret = asoc_simple_card_parse_card_name(&priv->snd_card, PREFIX);
+-	if (ret < 0)
+-		goto card_parse_end;
++	if (ret)
++		return ret;
+ 
+-	ret = asoc_simple_card_parse_aux_devs(node, priv);
++	return 0;
++}
+ 
+-card_parse_end:
+-	of_node_put(dai_link);
++/* Decrease the reference count of the device nodes */
++static int asoc_simple_card_unref(struct snd_soc_card *card)
++{
++	struct snd_soc_dai_link *dai_link;
++	int num_links;
+ 
+-	return ret;
++	for (num_links = 0, dai_link = card->dai_link;
++	     num_links < card->num_links;
++	     num_links++, dai_link++) {
++		of_node_put(dai_link->cpu_of_node);
++		of_node_put(dai_link->codec_of_node);
++	}
++	return 0;
+ }
+ 
+ static int asoc_simple_card_probe(struct platform_device *pdev)
+ {
+ 	struct simple_card_data *priv;
+ 	struct snd_soc_dai_link *dai_link;
+-	struct simple_dai_props *dai_props;
+ 	struct device_node *np = pdev->dev.of_node;
+ 	struct device *dev = &pdev->dev;
+-	int num, ret;
++	int num_links, ret;
+ 
+ 	/* Get the number of DAI links */
+ 	if (np && of_get_child_by_name(np, PREFIX "dai-link"))
+-		num = of_get_child_count(np);
++		num_links = of_get_child_count(np);
+ 	else
+-		num = 1;
++		num_links = 1;
+ 
+ 	/* Allocate the private data and the DAI link array */
+-	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
++	priv = devm_kzalloc(dev,
++			sizeof(*priv) + sizeof(*dai_link) * num_links,
++			GFP_KERNEL);
+ 	if (!priv)
+ 		return -ENOMEM;
+ 
+-	dai_props = devm_kzalloc(dev, sizeof(*dai_props) * num, GFP_KERNEL);
+-	dai_link  = devm_kzalloc(dev, sizeof(*dai_link)  * num, GFP_KERNEL);
+-	if (!dai_props || !dai_link)
+-		return -ENOMEM;
+-
+-	priv->dai_props			= dai_props;
+-	priv->dai_link			= dai_link;
+-
+ 	/* Init snd_soc_card */
+-	priv->snd_card.owner		= THIS_MODULE;
+-	priv->snd_card.dev		= dev;
+-	priv->snd_card.dai_link		= priv->dai_link;
+-	priv->snd_card.num_links	= num;
++	priv->snd_card.owner = THIS_MODULE;
++	priv->snd_card.dev = dev;
++	dai_link = priv->dai_link;
++	priv->snd_card.dai_link = dai_link;
++	priv->snd_card.num_links = num_links;
++
++	/* Get room for the other properties */
++	priv->dai_props = devm_kzalloc(dev,
++			sizeof(*priv->dai_props) * num_links,
++			GFP_KERNEL);
++	if (!priv->dai_props)
++		return -ENOMEM;
+ 
+ 	if (np && of_device_is_available(np)) {
+ 
+@@ -493,6 +567,7 @@ static int asoc_simple_card_probe(struct
+ 					sizeof(priv->dai_props->cpu_dai));
+ 		memcpy(&priv->dai_props->codec_dai, &cinfo->codec_dai,
+ 					sizeof(priv->dai_props->codec_dai));
++
+ 	}
+ 
+ 	snd_soc_card_set_drvdata(&priv->snd_card, priv);
+@@ -500,9 +575,9 @@ static int asoc_simple_card_probe(struct
+ 	ret = devm_snd_soc_register_card(&pdev->dev, &priv->snd_card);
+ 	if (ret >= 0)
+ 		return ret;
+-err:
+-	asoc_simple_card_clean_reference(&priv->snd_card);
+ 
++err:
++	asoc_simple_card_unref(&priv->snd_card);
+ 	return ret;
+ }
+ 
+@@ -514,7 +589,7 @@ static int asoc_simple_card_remove(struc
+ 	asoc_simple_card_remove_jack(&priv->hp_jack);
+ 	asoc_simple_card_remove_jack(&priv->mic_jack);
+ 
+-	return asoc_simple_card_clean_reference(card);
++	return asoc_simple_card_unref(card);
+ }
+ 
+ static const struct of_device_id asoc_simple_of_match[] = {
+@@ -536,6 +611,6 @@ static struct platform_driver asoc_simpl
+ module_platform_driver(asoc_simple_card);
+ 
+ MODULE_ALIAS("platform:asoc-simple-card");
+-MODULE_LICENSE("GPL v2");
++MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("ASoC Simple Sound Card");
+ MODULE_AUTHOR("Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>");
+diff -urpN linux-custom_orig/sound/soc/generic/simple-card-utils.c linux-custom/sound/soc/generic/simple-card-utils.c
+--- linux-custom_orig/sound/soc/generic/simple-card-utils.c	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/sound/soc/generic/simple-card-utils.c	2016-12-10 03:12:17.000000000 +0300
+@@ -7,7 +7,6 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
+-#include <linux/clk.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+ #include <sound/simple_card_utils.h>
+@@ -98,163 +97,6 @@ int asoc_simple_card_parse_card_name(str
+ }
+ EXPORT_SYMBOL_GPL(asoc_simple_card_parse_card_name);
+ 
+-int asoc_simple_card_parse_clk(struct device_node *node,
+-			       struct device_node *dai_of_node,
+-			       struct asoc_simple_dai *simple_dai)
+-{
+-	struct clk *clk;
+-	const char *str;
+-	int ret;
+-	u32 val;
+-
+-	/*
+-	 * Parse dai->sysclk come from "clocks = <&xxx>"
+-	 * (if system has common clock)
+-	 *  or "system-clock-frequency = <xxx>"
+-	 *  or device's module clock.
+-	 */
+-	clk = of_clk_get(node, 0);
+-	if (!IS_ERR(clk)) {
+-		simple_dai->sysclk = clk_get_rate(clk);
+-		simple_dai->clk = clk;
+-	} else if (!of_property_read_u32(node, "system-clock-frequency", &val)) {
+-		simple_dai->sysclk = val;
+-	} else {
+-		clk = of_clk_get(dai_of_node, 0);
+-		if (!IS_ERR(clk))
+-			simple_dai->sysclk = clk_get_rate(clk);
+-	}
+-
+-	ret = of_property_read_string(node, "system-clock-direction", &str);
+-	if (ret == 0) {
+-		if (!strcmp(str, "out"))
+-			simple_dai->sysclk_dir = SND_SOC_CLOCK_OUT;
+-		else if (!strcmp(str, "in"))
+-			simple_dai->sysclk_dir = SND_SOC_CLOCK_IN;
+-		else
+-			return -EINVAL;
+-	}
+-
+-	if (!of_property_read_u32(node, "system-clock-id", &val))
+-		simple_dai->sysclk_id = val;
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(asoc_simple_card_parse_clk);
+-
+-int asoc_simple_card_parse_dai(struct device_node *node,
+-				    struct device_node **dai_of_node,
+-				    const char **dai_name,
+-				    const char *list_name,
+-				    const char *cells_name,
+-				    int *is_single_link)
+-{
+-	struct of_phandle_args args;
+-	int ret;
+-
+-	if (!node)
+-		return 0;
+-
+-	/*
+-	 * Get node via "sound-dai = <&phandle port>"
+-	 * it will be used as xxx_of_node on soc_bind_dai_link()
+-	 */
+-	ret = of_parse_phandle_with_args(node, list_name, cells_name, 0, &args);
+-	if (ret)
+-		return ret;
+-
+-	/* Get dai->name */
+-	if (dai_name) {
+-		ret = snd_soc_of_get_dai_name(node, dai_name);
+-		if (ret < 0)
+-			return ret;
+-	}
+-
+-	*dai_of_node = args.np;
+-
+-	if (is_single_link)
+-		*is_single_link = !args.args_count;
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(asoc_simple_card_parse_dai);
+-
+-int asoc_simple_card_init_dai(struct snd_soc_dai *dai,
+-			      struct asoc_simple_dai *simple_dai)
+-{
+-	int ret;
+-
+-	if (simple_dai->sysclk) {
+-		ret = snd_soc_dai_set_sysclk(dai, simple_dai->sysclk_id,
+-					     simple_dai->sysclk,
+-					     simple_dai->sysclk_dir);
+-		if (ret && ret != -ENOTSUPP) {
+-			dev_err(dai->dev, "simple-card: set_sysclk error\n");
+-			return ret;
+-		}
+-	}
+-
+-	if (simple_dai->slots) {
+-		ret = snd_soc_dai_set_tdm_slot(dai,
+-					       simple_dai->tx_slot_mask,
+-					       simple_dai->rx_slot_mask,
+-					       simple_dai->slots,
+-					       simple_dai->slot_width);
+-		if (ret && ret != -ENOTSUPP) {
+-			dev_err(dai->dev, "simple-card: set_tdm_slot error\n");
+-			return ret;
+-		}
+-	}
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(asoc_simple_card_init_dai);
+-
+-int asoc_simple_card_canonicalize_dailink(struct snd_soc_dai_link *dai_link)
+-{
+-	if (!dai_link->cpu_dai_name || !dai_link->codec_dai_name)
+-		return -EINVAL;
+-
+-	/* Assumes platform == cpu */
+-	if (!dai_link->platform_of_node)
+-		dai_link->platform_of_node = dai_link->cpu_of_node;
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(asoc_simple_card_canonicalize_dailink);
+-
+-void asoc_simple_card_canonicalize_cpu(struct snd_soc_dai_link *dai_link,
+-				       int is_single_links)
+-{
+-	/*
+-	 * In soc_bind_dai_link() will check cpu name after
+-	 * of_node matching if dai_link has cpu_dai_name.
+-	 * but, it will never match if name was created by
+-	 * fmt_single_name() remove cpu_dai_name if cpu_args
+-	 * was 0. See:
+-	 *	fmt_single_name()
+-	 *	fmt_multiple_name()
+-	 */
+-	if (is_single_links)
+-		dai_link->cpu_dai_name = NULL;
+-}
+-EXPORT_SYMBOL_GPL(asoc_simple_card_canonicalize_cpu);
+-
+-int asoc_simple_card_clean_reference(struct snd_soc_card *card)
+-{
+-	struct snd_soc_dai_link *dai_link;
+-	int num_links;
+-
+-	for (num_links = 0, dai_link = card->dai_link;
+-	     num_links < card->num_links;
+-	     num_links++, dai_link++) {
+-		of_node_put(dai_link->cpu_of_node);
+-		of_node_put(dai_link->codec_of_node);
+-	}
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(asoc_simple_card_clean_reference);
+-
+ /* Module information */
+ MODULE_AUTHOR("Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>");
+ MODULE_DESCRIPTION("ALSA SoC Simple Card Utils");
+diff -urpN linux-custom_orig/sound/soc/generic/simple-scu-card.c linux-custom/sound/soc/generic/simple-scu-card.c
+--- linux-custom_orig/sound/soc/generic/simple-scu-card.c	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/sound/soc/generic/simple-scu-card.c	1970-01-01 03:00:00.000000000 +0300
+@@ -1,345 +0,0 @@
+-/*
+- * ASoC simple SCU sound card support
+- *
+- * Copyright (C) 2015 Renesas Solutions Corp.
+- * Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+- *
+- * based on ${LINUX}/sound/soc/generic/simple-card.c
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-#include <linux/clk.h>
+-#include <linux/device.h>
+-#include <linux/module.h>
+-#include <linux/of.h>
+-#include <linux/of_device.h>
+-#include <linux/platform_device.h>
+-#include <linux/string.h>
+-#include <sound/jack.h>
+-#include <sound/soc.h>
+-#include <sound/soc-dai.h>
+-#include <sound/simple_card_utils.h>
+-
+-struct asoc_simple_card_priv {
+-	struct snd_soc_card snd_card;
+-	struct snd_soc_codec_conf codec_conf;
+-	struct asoc_simple_dai *dai_props;
+-	struct snd_soc_dai_link *dai_link;
+-	u32 convert_rate;
+-	u32 convert_channels;
+-};
+-
+-#define simple_priv_to_dev(priv) ((priv)->snd_card.dev)
+-#define simple_priv_to_link(priv, i) ((priv)->snd_card.dai_link + (i))
+-#define simple_priv_to_props(priv, i) ((priv)->dai_props + (i))
+-
+-#define DAI	"sound-dai"
+-#define CELL	"#sound-dai-cells"
+-#define PREFIX	"simple-audio-card,"
+-
+-static int asoc_simple_card_startup(struct snd_pcm_substream *substream)
+-{
+-	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+-	struct asoc_simple_card_priv *priv =	snd_soc_card_get_drvdata(rtd->card);
+-	struct asoc_simple_dai *dai_props =
+-		simple_priv_to_props(priv, rtd->num);
+-
+-	return clk_prepare_enable(dai_props->clk);
+-}
+-
+-static void asoc_simple_card_shutdown(struct snd_pcm_substream *substream)
+-{
+-	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+-	struct asoc_simple_card_priv *priv =	snd_soc_card_get_drvdata(rtd->card);
+-	struct asoc_simple_dai *dai_props =
+-		simple_priv_to_props(priv, rtd->num);
+-
+-	clk_disable_unprepare(dai_props->clk);
+-}
+-
+-static struct snd_soc_ops asoc_simple_card_ops = {
+-	.startup = asoc_simple_card_startup,
+-	.shutdown = asoc_simple_card_shutdown,
+-};
+-
+-static int asoc_simple_card_dai_init(struct snd_soc_pcm_runtime *rtd)
+-{
+-	struct asoc_simple_card_priv *priv = snd_soc_card_get_drvdata(rtd->card);
+-	struct snd_soc_dai *dai;
+-	struct snd_soc_dai_link *dai_link;
+-	struct asoc_simple_dai *dai_props;
+-	int num = rtd->num;
+-
+-	dai_link	= simple_priv_to_link(priv, num);
+-	dai_props	= simple_priv_to_props(priv, num);
+-	dai		= dai_link->dynamic ?
+-				rtd->cpu_dai :
+-				rtd->codec_dai;
+-
+-	return asoc_simple_card_init_dai(dai, dai_props);
+-}
+-
+-static int asoc_simple_card_be_hw_params_fixup(struct snd_soc_pcm_runtime *rtd,
+-					struct snd_pcm_hw_params *params)
+-{
+-	struct asoc_simple_card_priv *priv = snd_soc_card_get_drvdata(rtd->card);
+-	struct snd_interval *rate = hw_param_interval(params,
+-						      SNDRV_PCM_HW_PARAM_RATE);
+-	struct snd_interval *channels = hw_param_interval(params,
+-						SNDRV_PCM_HW_PARAM_CHANNELS);
+-
+-	if (priv->convert_rate)
+-		rate->min =
+-		rate->max = priv->convert_rate;
+-
+-	if (priv->convert_channels)
+-		channels->min =
+-		channels->max = priv->convert_channels;
+-
+-	return 0;
+-}
+-
+-static int asoc_simple_card_parse_links(struct device_node *np,
+-					struct asoc_simple_card_priv *priv,
+-					unsigned int daifmt,
+-					int idx, bool is_fe)
+-{
+-	struct device *dev = simple_priv_to_dev(priv);
+-	struct snd_soc_dai_link *dai_link = simple_priv_to_link(priv, idx);
+-	struct asoc_simple_dai *dai_props = simple_priv_to_props(priv, idx);
+-	int ret;
+-
+-	if (is_fe) {
+-		int is_single_links = 0;
+-
+-		/* BE is dummy */
+-		dai_link->codec_of_node		= NULL;
+-		dai_link->codec_dai_name	= "snd-soc-dummy-dai";
+-		dai_link->codec_name		= "snd-soc-dummy";
+-
+-		/* FE settings */
+-		dai_link->dynamic		= 1;
+-		dai_link->dpcm_merged_format	= 1;
+-
+-		ret = asoc_simple_card_parse_cpu(np, dai_link, DAI, CELL,
+-						 &is_single_links);
+-		if (ret)
+-			return ret;
+-
+-		ret = asoc_simple_card_parse_clk_cpu(np, dai_link, dai_props);
+-		if (ret < 0)
+-			return ret;
+-
+-		ret = asoc_simple_card_set_dailink_name(dev, dai_link,
+-							"fe.%s",
+-							dai_link->cpu_dai_name);
+-		if (ret < 0)
+-			return ret;
+-
+-		asoc_simple_card_canonicalize_cpu(dai_link, is_single_links);
+-	} else {
+-		/* FE is dummy */
+-		dai_link->cpu_of_node		= NULL;
+-		dai_link->cpu_dai_name		= "snd-soc-dummy-dai";
+-		dai_link->cpu_name		= "snd-soc-dummy";
+-
+-		/* BE settings */
+-		dai_link->no_pcm		= 1;
+-		dai_link->be_hw_params_fixup	= asoc_simple_card_be_hw_params_fixup;
+-
+-		ret = asoc_simple_card_parse_codec(np, dai_link, DAI, CELL);
+-		if (ret < 0)
+-			return ret;
+-
+-		ret = asoc_simple_card_parse_clk_codec(np, dai_link, dai_props);
+-		if (ret < 0)
+-			return ret;
+-
+-		ret = asoc_simple_card_set_dailink_name(dev, dai_link,
+-							"be.%s",
+-							dai_link->codec_dai_name);
+-		if (ret < 0)
+-			return ret;
+-
+-		snd_soc_of_parse_audio_prefix(&priv->snd_card,
+-					      &priv->codec_conf,
+-					      dai_link->codec_of_node,
+-					      PREFIX "prefix");
+-	}
+-
+-	ret = snd_soc_of_parse_tdm_slot(np,
+-					&dai_props->tx_slot_mask,
+-					&dai_props->rx_slot_mask,
+-					&dai_props->slots,
+-					&dai_props->slot_width);
+-	if (ret)
+-		return ret;
+-
+-	ret = asoc_simple_card_canonicalize_dailink(dai_link);
+-	if (ret < 0)
+-		return ret;
+-
+-	dai_link->dai_fmt		= daifmt;
+-	dai_link->dpcm_playback		= 1;
+-	dai_link->dpcm_capture		= 1;
+-	dai_link->ops			= &asoc_simple_card_ops;
+-	dai_link->init			= asoc_simple_card_dai_init;
+-
+-	dev_dbg(dev, "\t%s / %04x / %d\n",
+-		dai_link->name,
+-		dai_link->dai_fmt,
+-		dai_props->sysclk);
+-
+-	return 0;
+-}
+-
+-static int asoc_simple_card_dai_link_of(struct device_node *node,
+-				 struct asoc_simple_card_priv *priv)
+-{
+-	struct device *dev = simple_priv_to_dev(priv);
+-	struct device_node *np;
+-	unsigned int daifmt = 0;
+-	int ret, i;
+-	bool is_fe;
+-
+-	/* find 1st codec */
+-	np = of_get_child_by_name(node, PREFIX "codec");
+-	if (!np)
+-		return -ENODEV;
+-
+-	ret = asoc_simple_card_parse_daifmt(dev, node, np,
+-					    PREFIX, &daifmt);
+-	if (ret < 0)
+-		return ret;
+-
+-	i = 0;
+-	for_each_child_of_node(node, np) {
+-		is_fe = false;
+-		if (strcmp(np->name, PREFIX "cpu") == 0)
+-			is_fe = true;
+-
+-		ret = asoc_simple_card_parse_links(np, priv, daifmt, i, is_fe);
+-		if (ret < 0)
+-			return ret;
+-		i++;
+-	}
+-
+-	return 0;
+-}
+-
+-static int asoc_simple_card_parse_of(struct device_node *node,
+-			      struct asoc_simple_card_priv *priv,
+-			      struct device *dev)
+-{
+-	struct asoc_simple_dai *props;
+-	struct snd_soc_dai_link *links;
+-	int ret;
+-	int num;
+-
+-	if (!node)
+-		return -EINVAL;
+-
+-	num = of_get_child_count(node);
+-	props = devm_kzalloc(dev, sizeof(*props) * num, GFP_KERNEL);
+-	links = devm_kzalloc(dev, sizeof(*links) * num, GFP_KERNEL);
+-	if (!props || !links)
+-		return -ENOMEM;
+-
+-	priv->dai_props	= props;
+-	priv->dai_link	= links;
+-
+-	/* Init snd_soc_card */
+-	priv->snd_card.owner			= THIS_MODULE;
+-	priv->snd_card.dev			= dev;
+-	priv->snd_card.dai_link			= priv->dai_link;
+-	priv->snd_card.num_links		= num;
+-	priv->snd_card.codec_conf		= &priv->codec_conf;
+-	priv->snd_card.num_configs		= 1;
+-
+-	ret = snd_soc_of_parse_audio_routing(&priv->snd_card, PREFIX "routing");
+-	if (ret < 0)
+-		return ret;
+-
+-	/* sampling rate convert */
+-	of_property_read_u32(node, PREFIX "convert-rate", &priv->convert_rate);
+-
+-	/* channels transfer */
+-	of_property_read_u32(node, PREFIX "convert-channels", &priv->convert_channels);
+-
+-	ret = asoc_simple_card_dai_link_of(node, priv);
+-	if (ret < 0)
+-		return ret;
+-
+-	ret = asoc_simple_card_parse_card_name(&priv->snd_card, PREFIX);
+-	if (ret < 0)
+-		return ret;
+-
+-	dev_dbg(dev, "New card: %s\n",
+-		priv->snd_card.name ? priv->snd_card.name : "");
+-	dev_dbg(dev, "convert_rate     %d\n", priv->convert_rate);
+-	dev_dbg(dev, "convert_channels %d\n", priv->convert_channels);
+-
+-	return 0;
+-}
+-
+-static int asoc_simple_card_probe(struct platform_device *pdev)
+-{
+-	struct asoc_simple_card_priv *priv;
+-	struct device_node *np = pdev->dev.of_node;
+-	struct device *dev = &pdev->dev;
+-	int ret;
+-
+-	/* Allocate the private data */
+-	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+-	if (!priv)
+-		return -ENOMEM;
+-
+-	ret = asoc_simple_card_parse_of(np, priv, dev);
+-	if (ret < 0) {
+-		if (ret != -EPROBE_DEFER)
+-			dev_err(dev, "parse error %d\n", ret);
+-		goto err;
+-	}
+-
+-	snd_soc_card_set_drvdata(&priv->snd_card, priv);
+-
+-	ret = devm_snd_soc_register_card(&pdev->dev, &priv->snd_card);
+-	if (ret >= 0)
+-		return ret;
+-err:
+-	asoc_simple_card_clean_reference(&priv->snd_card);
+-
+-	return ret;
+-}
+-
+-static int asoc_simple_card_remove(struct platform_device *pdev)
+-{
+-	struct snd_soc_card *card = platform_get_drvdata(pdev);
+-
+-	return asoc_simple_card_clean_reference(card);
+-}
+-
+-static const struct of_device_id asoc_simple_of_match[] = {
+-	{ .compatible = "renesas,rsrc-card", },
+-	{ .compatible = "simple-scu-audio-card", },
+-	{},
+-};
+-MODULE_DEVICE_TABLE(of, asoc_simple_of_match);
+-
+-static struct platform_driver asoc_simple_card = {
+-	.driver = {
+-		.name = "simple-scu-audio-card",
+-		.of_match_table = asoc_simple_of_match,
+-	},
+-	.probe = asoc_simple_card_probe,
+-	.remove = asoc_simple_card_remove,
+-};
+-
+-module_platform_driver(asoc_simple_card);
+-
+-MODULE_ALIAS("platform:asoc-simple-scu-card");
+-MODULE_LICENSE("GPL v2");
+-MODULE_DESCRIPTION("ASoC Simple SCU Sound Card");
+-MODULE_AUTHOR("Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>");
+diff -urpN linux-custom_orig/sound/soc/omap/omap-hdmi-audio.c linux-custom/sound/soc/omap/omap-hdmi-audio.c
+--- linux-custom_orig/sound/soc/omap/omap-hdmi-audio.c	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/sound/soc/omap/omap-hdmi-audio.c	2019-05-16 22:42:11.000000000 +0300
+@@ -28,7 +28,6 @@
+ #include <sound/asoundef.h>
+ #include <sound/omap-pcm.h>
+ #include <sound/omap-hdmi-audio.h>
+-#include <sound/initval.h>
+ 
+ #define DRV_NAME "omap-hdmi-audio"
+ 
+@@ -322,20 +321,12 @@ static int omap_hdmi_audio_probe(struct
+ 	struct snd_soc_dai_driver *dai_drv;
+ 	struct snd_soc_card *card;
+ 	int ret;
+-	int id = SNDRV_DEFAULT_IDX1;
+ 
+ 	if (!ha) {
+ 		dev_err(dev, "No platform data\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	/* Get the id of the parent (the HDMI HW IP) */
+-	if (ha->dev->of_node) {
+-		id = of_alias_get_id(ha->dev->of_node, "sound");
+-		if (id < 0)
+-			id = SNDRV_DEFAULT_IDX1;
+-	}
+-
+ 	ad = devm_kzalloc(dev, sizeof(*ad), GFP_KERNEL);
+ 	if (!ad)
+ 		return -ENOMEM;
+@@ -374,7 +365,6 @@ static int omap_hdmi_audio_probe(struct
+ 
+ 	card->name = devm_kasprintf(dev, GFP_KERNEL,
+ 				    "HDMI %s", dev_name(ad->dssdev));
+-	card->id_hint = id;
+ 	card->owner = THIS_MODULE;
+ 	card->dai_link =
+ 		devm_kzalloc(dev, sizeof(*(card->dai_link)), GFP_KERNEL);
+diff -urpN linux-custom_orig/sound/soc/soc-core.c linux-custom/sound/soc/soc-core.c
+--- linux-custom_orig/sound/soc/soc-core.c	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/sound/soc/soc-core.c	2019-05-16 22:42:11.000000000 +0300
+@@ -1846,7 +1846,6 @@ static int snd_soc_instantiate_card(stru
+ 	struct snd_soc_pcm_runtime *rtd;
+ 	struct snd_soc_dai_link *dai_link;
+ 	int ret, i, order;
+-	int idx;
+ 
+ 	mutex_lock(&client_mutex);
+ 	mutex_lock_nested(&card->mutex, SND_SOC_CARD_CLASS_INIT);
+@@ -1878,16 +1877,8 @@ static int snd_soc_instantiate_card(stru
+ 			goto base_error;
+ 	}
+ 
+-	if (card->dev->of_node) {
+-		idx = of_alias_get_id(card->dev->of_node, "sound");
+-		if (idx < 0)
+-			idx = SNDRV_DEFAULT_IDX1;
+-	} else {
+-		idx = card->id_hint;
+-	}
+-
+ 	/* card bind complete so register a sound card */
+-	ret = snd_card_new(card->dev, idx, SNDRV_DEFAULT_STR1,
++	ret = snd_card_new(card->dev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1,
+ 			card->owner, 0, &card->snd_card);
+ 	if (ret < 0) {
+ 		dev_err(card->dev,
+diff -urpN linux-custom_orig/sound/usb/card.h linux-custom/sound/usb/card.h
+--- linux-custom_orig/sound/usb/card.h	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/sound/usb/card.h	2022-01-15 10:52:27.002127521 +0300
+@@ -31,6 +31,7 @@ struct audioformat {
+ 	struct snd_pcm_chmap_elem *chmap; /* (optional) channel map */
+ 	bool dsd_dop;			/* add DOP headers in case of DSD samples */
+ 	bool dsd_bitrev;		/* reverse the bits of each DSD sample */
++	bool dsd_raw;			/* altsetting is raw DSD */
+ };
+ 
+ struct snd_usb_substream;
+diff -urpN linux-custom_orig/sound/usb/format.c linux-custom/sound/usb/format.c
+--- linux-custom_orig/sound/usb/format.c	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/sound/usb/format.c	2022-01-15 10:52:27.002127521 +0300
+@@ -63,9 +63,11 @@ static u64 parse_audio_format_i_type(str
+ 		sample_width = fmt->bBitResolution;
+ 		sample_bytes = fmt->bSubslotSize;
+ 
+-		if (format & UAC2_FORMAT_TYPE_I_RAW_DATA)
+-			pcm_formats |= SNDRV_PCM_FMTBIT_SPECIAL;
+-
++		if (format & UAC2_FORMAT_TYPE_I_RAW_DATA) {
++		    pcm_formats |= SNDRV_PCM_FMTBIT_SPECIAL;
++		/* flag potentially raw DSD capable altsettings */
++		fp->dsd_raw = true;
++	}
+ 		format <<= 1;
+ 		break;
+ 	}
+diff -urpN linux-custom_orig/sound/usb/quirks.c linux-custom/sound/usb/quirks.c
+--- linux-custom_orig/sound/usb/quirks.c	2019-07-09 17:31:28.000000000 +0300
++++ linux-custom/sound/usb/quirks.c	2022-01-15 10:52:27.002127521 +0300
+@@ -146,10 +146,9 @@ static int create_fixed_stream_quirk(str
+ 	unsigned *rate_table = NULL;
+ 
+ 	fp = kmemdup(quirk->data, sizeof(*fp), GFP_KERNEL);
+-	if (!fp) {
+-		usb_audio_err(chip, "cannot memdup\n");
++	if (!fp)
+ 		return -ENOMEM;
+-	}
++
+ 	INIT_LIST_HEAD(&fp->list);
+ 	if (fp->nr_rates > MAX_NR_RATES) {
+ 		kfree(fp);
+@@ -852,6 +851,36 @@ static int snd_usb_mbox2_boot_quirk(stru
+ 	return 0; /* Successful boot */
+ }
+ 
++static int snd_usb_axefx3_boot_quirk(struct usb_device *dev)
++{
++	int err;
++
++	dev_dbg(&dev->dev, "Waiting for Axe-Fx III to boot up...\n");
++
++	/* If the Axe-Fx III has not fully booted, it will timeout when trying
++	 * to enable the audio streaming interface. A more generous timeout is
++	 * used here to detect when the Axe-Fx III has finished booting as the
++	 * set interface message will be acked once it has
++	 */
++	err = usb_control_msg(dev, usb_sndctrlpipe(dev, 0),
++				USB_REQ_SET_INTERFACE, USB_RECIP_INTERFACE,
++				1, 1, NULL, 0, 120000);
++	if (err < 0) {
++		dev_err(&dev->dev,
++			"failed waiting for Axe-Fx III to boot: %d\n", err);
++		return err;
++	}
++
++	dev_dbg(&dev->dev, "Axe-Fx III is now ready\n");
++
++	err = usb_set_interface(dev, 1, 0);
++	if (err < 0)
++		dev_dbg(&dev->dev,
++			"error stopping Axe-Fx III interface: %d\n", err);
++
++	return 0;
++}
++
+ /*
+  * Setup quirks
+  */
+@@ -1027,6 +1056,8 @@ int snd_usb_apply_boot_quirk(struct usb_
+ 		return snd_usb_fasttrackpro_boot_quirk(dev);
+ 	case USB_ID(0x047f, 0xc010): /* Plantronics Gamecom 780 */
+ 		return snd_usb_gamecon780_boot_quirk(dev);
++	case USB_ID(0x2466, 0x8010): /* Fractal Audio Axe-Fx 3 */
++		return snd_usb_axefx3_boot_quirk(dev);
+ 	}
+ 
+ 	return 0;
+@@ -1129,54 +1160,38 @@ bool snd_usb_get_sample_rate_quirk(struc
+ 	/* devices which do not support reading the sample rate. */
+ 	switch (chip->usb_id) {
+ 	case USB_ID(0x041E, 0x4080): /* Creative Live Cam VF0610 */
+-	case USB_ID(0x045E, 0x075D): /* MS Lifecam Cinema  */
+-	case USB_ID(0x045E, 0x076D): /* MS Lifecam HD-5000 */
+-	case USB_ID(0x045E, 0x076E): /* MS Lifecam HD-5001 */
+-	case USB_ID(0x045E, 0x076F): /* MS Lifecam HD-6000 */
+-	case USB_ID(0x045E, 0x0772): /* MS Lifecam Studio */
+-	case USB_ID(0x045E, 0x0779): /* MS Lifecam HD-3000 */
+-	case USB_ID(0x047F, 0x02F7): /* Plantronics BT-600 */
+-	case USB_ID(0x047F, 0x0415): /* Plantronics BT-300 */
+-	case USB_ID(0x047F, 0xAA05): /* Plantronics DA45 */
+ 	case USB_ID(0x04D8, 0xFEEA): /* Benchmark DAC1 Pre */
+ 	case USB_ID(0x0556, 0x0014): /* Phoenix Audio TMX320VC */
+ 	case USB_ID(0x05A3, 0x9420): /* ELP HD USB Camera */
+ 	case USB_ID(0x074D, 0x3553): /* Outlaw RR2150 (Micronas UAC3553B) */
+ 	case USB_ID(0x1395, 0x740a): /* Sennheiser DECT */
+ 	case USB_ID(0x1901, 0x0191): /* GE B850V3 CP2114 audio interface */
+-	case USB_ID(0x1de7, 0x0013): /* Phoenix Audio MT202exe */
+-	case USB_ID(0x1de7, 0x0014): /* Phoenix Audio TMX320 */
+-	case USB_ID(0x1de7, 0x0114): /* Phoenix Audio MT202pcs */
+ 	case USB_ID(0x21B4, 0x0081): /* AudioQuest DragonFly */
+ 		return true;
+ 	}
++
++	/* devices of these vendors don't support reading rate, either */
++	switch (USB_ID_VENDOR(chip->usb_id)) {
++	case 0x045E: /* MS Lifecam */
++	case 0x047F: /* Plantronics */
++	case 0x1de7: /* Phoenix Audio */
++		return true;
++	}
++
+ 	return false;
+ }
+ 
+ /* ITF-USB DSD based DACs need a vendor cmd to switch
+  * between PCM and native DSD mode
+- * (2 altsets version)
+  */
+-static bool is_itf_usb_dsd_2alts_dac(unsigned int id)
++static bool is_itf_usb_dsd_dac(unsigned int id)
+ {
+ 	switch (id) {
+ 	case USB_ID(0x154e, 0x1003): /* Denon DA-300USB */
+ 	case USB_ID(0x154e, 0x3005): /* Marantz HD-DAC1 */
+ 	case USB_ID(0x154e, 0x3006): /* Marantz SA-14S1 */
+ 	case USB_ID(0x1852, 0x5065): /* Luxman DA-06 */
+-		return true;
+-	}
+-	return false;
+-}
+-
+-/* ITF-USB DSD based DACs need a vendor cmd to switch
+- * between PCM and native DSD mode
+- * (3 altsets version)
+- */
+-static bool is_itf_usb_dsd_3alts_dac(unsigned int id)
+-{
+-	switch (id) {
+-	case USB_ID(0x0644, 0x8043): /* TEAC UD-501/UD-503/NT-503 */
++	case USB_ID(0x0644, 0x8043): /* TEAC UD-501/UD-501V2/UD-503/NT-503 */
+ 	case USB_ID(0x0644, 0x8044): /* Esoteric D-05X */
+ 	case USB_ID(0x0644, 0x804a): /* TEAC UD-301 */
+ 		return true;
+@@ -1190,7 +1205,7 @@ int snd_usb_select_mode_quirk(struct snd
+ 	struct usb_device *dev = subs->dev;
+ 	int err;
+ 
+-	if (is_itf_usb_dsd_2alts_dac(subs->stream->chip->usb_id)) {
++	if (is_itf_usb_dsd_dac(subs->stream->chip->usb_id)) {
+ 		/* First switch to alt set 0, otherwise the mode switch cmd
+ 		 * will not be accepted by the DAC
+ 		 */
+@@ -1198,39 +1213,28 @@ int snd_usb_select_mode_quirk(struct snd
+ 		if (err < 0)
+ 			return err;
+ 
+-		mdelay(20); /* Delay needed after setting the interface */
++		msleep(20); /* Delay needed after setting the interface */
+ 
+-		switch (fmt->altsetting) {
+-		case 2: /* DSD mode requested */
+-		case 1: /* PCM mode requested */
+-			err = snd_usb_ctl_msg(dev, usb_sndctrlpipe(dev, 0), 0,
+-					      USB_DIR_OUT|USB_TYPE_VENDOR|USB_RECIP_INTERFACE,
+-					      fmt->altsetting - 1, 1, NULL, 0);
+-			if (err < 0)
+-				return err;
+-			break;
+-		}
+-		mdelay(20);
+-	} else if (is_itf_usb_dsd_3alts_dac(subs->stream->chip->usb_id)) {
+ 		/* Vendor mode switch cmd is required. */
+-		switch (fmt->altsetting) {
+-		case 3: /* DSD mode (DSD_U32) requested */
++		if (fmt->formats & SNDRV_PCM_FMTBIT_DSD_U32_BE) {
++			/* DSD mode (DSD_U32) requested */
+ 			err = snd_usb_ctl_msg(dev, usb_sndctrlpipe(dev, 0), 0,
+ 					      USB_DIR_OUT|USB_TYPE_VENDOR|USB_RECIP_INTERFACE,
+ 					      1, 1, NULL, 0);
+ 			if (err < 0)
+ 				return err;
+-			break;
+ 
+-		case 2: /* PCM or DOP mode (S32) requested */
+-		case 1: /* PCM mode (S16) requested */
++		} else {
++			/* PCM or DOP mode (S32) requested */
++			/* PCM mode (S16) requested */
+ 			err = snd_usb_ctl_msg(dev, usb_sndctrlpipe(dev, 0), 0,
+ 					      USB_DIR_OUT|USB_TYPE_VENDOR|USB_RECIP_INTERFACE,
+ 					      0, 1, NULL, 0);
+ 			if (err < 0)
+ 				return err;
+-			break;
++
+ 		}
++		msleep(20);
+ 	}
+ 	return 0;
+ }
+@@ -1277,7 +1281,7 @@ void snd_usb_set_interface_quirk(struct
+ 	switch (USB_ID_VENDOR(chip->usb_id)) {
+ 	case 0x23ba: /* Playback Design */
+ 	case 0x0644: /* TEAC Corp. */
+-		mdelay(50);
++		msleep(50);
+ 		break;
+ 	}
+ }
+@@ -1297,7 +1301,7 @@ void snd_usb_ctl_msg_quirk(struct usb_de
+ 	 */
+ 	if (USB_ID_VENDOR(chip->usb_id) == 0x23ba &&
+ 	    (requesttype & USB_TYPE_MASK) == USB_TYPE_CLASS)
+-		mdelay(20);
++		msleep(20);
+ 
+ 	/*
+ 	 * "TEAC Corp." products need a 20ms delay after each
+@@ -1305,14 +1309,14 @@ void snd_usb_ctl_msg_quirk(struct usb_de
+ 	 */
+ 	if (USB_ID_VENDOR(chip->usb_id) == 0x0644 &&
+ 	    (requesttype & USB_TYPE_MASK) == USB_TYPE_CLASS)
+-		mdelay(20);
++		msleep(20);
+ 
+ 	/* ITF-USB DSD based DACs functionality need a delay
+ 	 * after each class compliant request
+ 	 */
+-	if (is_itf_usb_dsd_2alts_dac(chip->usb_id)
++	if (is_itf_usb_dsd_dac(chip->usb_id)
+ 	    && (requesttype & USB_TYPE_MASK) == USB_TYPE_CLASS)
+-		mdelay(20);
++		msleep(20);
+ 
+ 	/* Zoom R16/24, Logitech H650e, Jabra 550a needs a tiny delay here,
+ 	 * otherwise requests like get/set frequency return as failed despite
+@@ -1322,7 +1326,7 @@ void snd_usb_ctl_msg_quirk(struct usb_de
+ 	     chip->usb_id == USB_ID(0x046d, 0x0a46) ||
+ 	     chip->usb_id == USB_ID(0x0b0e, 0x0349)) &&
+ 	    (requesttype & USB_TYPE_MASK) == USB_TYPE_CLASS)
+-		mdelay(1);
++		usleep_range(1000, 2000);
+ }
+ 
+ /*
+@@ -1336,6 +1340,8 @@ u64 snd_usb_interface_dsd_format_quirks(
+ 					struct audioformat *fp,
+ 					unsigned int sample_bytes)
+ {
++	struct usb_interface *iface;
++
+ 	/* Playback Designs */
+ 	if (USB_ID_VENDOR(chip->usb_id) == 0x23ba) {
+ 		switch (fp->altsetting) {
+@@ -1353,38 +1359,143 @@ u64 snd_usb_interface_dsd_format_quirks(
+ 
+ 	/* XMOS based USB DACs */
+ 	switch (chip->usb_id) {
+-	case USB_ID(0x20b1, 0x3008): /* iFi Audio micro/nano iDSD */
++	case USB_ID(0x1511, 0x0037): /* AURALiC VEGA */
++	case USB_ID(0x20b1, 0x0002): /* Wyred 4 Sound DAC-2 DSD */
++	case USB_ID(0x20b1, 0x2004): /* Matrix Audio X-SPDIF 2 */
+ 	case USB_ID(0x20b1, 0x2008): /* Matrix Audio X-Sabre */
+ 	case USB_ID(0x20b1, 0x300a): /* Matrix Audio Mini-i Pro */
+ 	case USB_ID(0x22d9, 0x0416): /* OPPO HA-1 */
++	case USB_ID(0x22d9, 0x0436): /* OPPO Sonica */
++	case USB_ID(0x22d9, 0x0461): /* OPPO UDP-205 */
++	case USB_ID(0x2522, 0x0012): /* LH Labs VI DAC Infinity */
+ 	case USB_ID(0x2772, 0x0230): /* Pro-Ject Pre Box S2 Digital */
+ 		if (fp->altsetting == 2)
+ 			return SNDRV_PCM_FMTBIT_DSD_U32_BE;
+ 		break;
+ 
++	case USB_ID(0x10cb, 0x0103): /* The Bit Opus #3; with fp->dsd_raw */
++	case USB_ID(0x152a, 0x85de): /* SMSL D1 DAC */
++	case USB_ID(0x16d0, 0x09dd): /* Encore mDSD */
++	case USB_ID(0x0d8c, 0x0316): /* Hegel HD12 DSD */
++	case USB_ID(0x16b0, 0x06b2): /* NuPrime DAC-10 */
++	case USB_ID(0x16d0, 0x0733): /* Furutech ADL Stratos */
++	case USB_ID(0x16d0, 0x09db): /* NuPrime Audio DAC-9 */
++	case USB_ID(0x1db5, 0x0003): /* Bryston BDA3 */
+ 	case USB_ID(0x20b1, 0x000a): /* Gustard DAC-X20U */
++	case USB_ID(0x20b1, 0x2005): /* Denafrips Ares DAC */
+ 	case USB_ID(0x20b1, 0x2009): /* DIYINHK DSD DXD 384kHz USB to I2S/DSD */
+ 	case USB_ID(0x20b1, 0x2023): /* JLsounds I2SoverUSB */
++	case USB_ID(0x20b1, 0x3021): /* Eastern El. MiniMax Tube DAC Supreme */
+ 	case USB_ID(0x20b1, 0x3023): /* Aune X1S 32BIT/384 DSD DAC */
++	case USB_ID(0x20b1, 0x302d): /* Unison Research Unico CD Due */
++	case USB_ID(0x20b1, 0x307b): /* CH Precision C1 DAC */
++	case USB_ID(0x20b1, 0x3086): /* Singxer F-1 converter board */
++	case USB_ID(0x22d9, 0x0426): /* OPPO HA-2 */
++	case USB_ID(0x22e1, 0xca01): /* HDTA Serenade DSD */
++	case USB_ID(0x249c, 0x9326): /* M2Tech Young MkIII */
+ 	case USB_ID(0x2616, 0x0106): /* PS Audio NuWave DAC */
++	case USB_ID(0x2622, 0x0041): /* Audiolab M-DAC+ */
++	case USB_ID(0x27f7, 0x3002): /* W4S DAC-2v2SE */
++	case USB_ID(0x29a2, 0x0086): /* Mutec MC3+ USB */
++	case USB_ID(0x6b42, 0x0042): /* MSB Technology */
+ 		if (fp->altsetting == 3)
+ 			return SNDRV_PCM_FMTBIT_DSD_U32_BE;
+ 		break;
++
++	/* Amanero Combo384 USB based DACs with native DSD support */
++	case USB_ID(0x16d0, 0x071a):  /* Amanero - Combo384 */
++	case USB_ID(0x2ab6, 0x0004):  /* T+A DAC8DSD-V2.0, MP1000E-V2.0, MP2000R-V2.0, MP2500R-V2.0, MP3100HV-V2.0 */
++	case USB_ID(0x2ab6, 0x0005):  /* T+A USB HD Audio 1 */
++	case USB_ID(0x2ab6, 0x0006):  /* T+A USB HD Audio 2 */
++		if (fp->altsetting == 2) {
++			switch (le16_to_cpu(chip->dev->descriptor.bcdDevice)) {
++			case 0x199:
++				return SNDRV_PCM_FMTBIT_DSD_U32_LE;
++			case 0x19b:
++			case 0x203:
++				return SNDRV_PCM_FMTBIT_DSD_U32_BE;
++			default:
++				break;
++			}
++		}
++		break;
++	case USB_ID(0x16d0, 0x0a23):
++		if (fp->altsetting == 2)
++			return SNDRV_PCM_FMTBIT_DSD_U32_BE;
++		break;
++
+ 	default:
+ 		break;
+ 	}
+ 
+-	/* ITF-USB DSD based DACs (2 altsets version) */
+-	if (is_itf_usb_dsd_2alts_dac(chip->usb_id)) {
+-		if (fp->altsetting == 2)
++	/* ITF-USB DSD based DACs */
++	if (is_itf_usb_dsd_dac(chip->usb_id)) {
++		iface = usb_ifnum_to_if(chip->dev, fp->iface);
++
++		/* Altsetting 2 support native DSD if the num of altsets is
++		 * three (0-2),
++		 * Altsetting 3 support native DSD if the num of altsets is
++		 * four (0-3).
++		 */
++		if (fp->altsetting == iface->num_altsetting - 1)
+ 			return SNDRV_PCM_FMTBIT_DSD_U32_BE;
+ 	}
+ 
+-	/* ITF-USB DSD based DACs (3 altsets version) */
+-	if (is_itf_usb_dsd_3alts_dac(chip->usb_id)) {
+-		if (fp->altsetting == 3)
++	/* Mostly generic method to detect many DSD-capable implementations -
++	 * from XMOS/Thesycon
++	 */
++	switch (USB_ID_VENDOR(chip->usb_id)) {
++	case 0x152a:  /* Thesycon devices */
++	case 0x20b1:  /* XMOS based devices */	
++	case 0x22d9:  /* Oppo */ 
++	case 0x23ba:  /* Playback Designs */ 
++	case 0x25ce:  /* Mytek devices */
++	case 0x278b:  /* Rotel? */
++	case 0x292b:  /* Gustard/Ess based devices */
++	case 0x2ab6:  /* T+A devices */ 
++	case 0x3842:  /* EVGA */  
++	case 0xc502:  /* HiBy devices */
++		if (fp->dsd_raw)
+ 			return SNDRV_PCM_FMTBIT_DSD_U32_BE;
++		break;
++	default:
++		break;
++
+ 	}
+ 
+ 	return 0;
+ }
++
++void snd_usb_audioformat_attributes_quirk(struct snd_usb_audio *chip,
++					  struct audioformat *fp,
++					  int stream)
++{
++	switch (chip->usb_id) {
++	case USB_ID(0x0a92, 0x0053): /* AudioTrak Optoplay */
++		/* Optoplay sets the sample rate attribute although
++		 * it seems not supporting it in fact.
++		 */
++		fp->attributes &= ~UAC_EP_CS_ATTR_SAMPLE_RATE;
++		break;
++	case USB_ID(0x041e, 0x3020): /* Creative SB Audigy 2 NX */
++	case USB_ID(0x0763, 0x2003): /* M-Audio Audiophile USB */
++		/* doesn't set the sample rate attribute, but supports it */
++		fp->attributes |= UAC_EP_CS_ATTR_SAMPLE_RATE;
++		break;
++	case USB_ID(0x0763, 0x2001):  /* M-Audio Quattro USB */
++	case USB_ID(0x0763, 0x2012):  /* M-Audio Fast Track Pro USB */
++	case USB_ID(0x047f, 0x0ca1): /* plantronics headset */
++	case USB_ID(0x077d, 0x07af): /* Griffin iMic (note that there is
++					an older model 77d:223) */
++	/*
++	 * plantronics headset and Griffin iMic have set adaptive-in
++	 * although it's really not...
++	 */
++		fp->ep_attr &= ~USB_ENDPOINT_SYNCTYPE;
++		if (stream == SNDRV_PCM_STREAM_PLAYBACK)
++			fp->ep_attr |= USB_ENDPOINT_SYNC_ADAPTIVE;
++		else
++			fp->ep_attr |= USB_ENDPOINT_SYNC_SYNC;
++		break;
++	}
++}

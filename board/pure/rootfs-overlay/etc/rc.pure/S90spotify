@@ -1,0 +1,27 @@
+#!/bin/sh
+
+case "$1" in
+  start)
+    printf "Starting Spotify: "
+    i=1
+    while [ $i -lt 300 ]
+	do
+	echo "Number: $i"
+	i=$((i+1))
+	network=`route |grep UG`
+	if [[ -n "$network"  ]]; then
+	break
+	fi
+	sleep 1
+    done
+
+    NAME=`hostname`_`ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`
+     nice -n -10 /usr/bin/librespot --autoplay --cache /tmp --cache-size-limit 50M --bitrate 320 --name $NAME --initial-volume 100 > /dev/null 2>&1 &
+
+    ;;
+    stop)
+    killall librespot
+    ;;
+      *)
+        exit 1
+esac

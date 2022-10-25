@@ -1,0 +1,18 @@
+bootpart=0:1
+devtype=mmc
+bootdir=
+bootfile=USB
+bootpartition=mmcblk0p2
+console=ttyS0,115200n8
+loadaddr=0x82000000
+fdtaddr=0x88000000
+
+loadximage=load mmc 0:1 ${loadaddr} /$bootfile
+loadxfdt=load mmc 0:1 ${fdtaddr} /am335x-boneblack.dtb
+loaduEnvtxt=load mmc 0:1 ${loadaddr} /uEnv.txt ; env import -t ${loadaddr} ${filesize};
+
+optargs=mitigations=off snd_soc_botic.serconfig=MM-- snd_soc_davinci_mcasp.mute_pins=8 snd_soc_davinci_mcasp.amanero_mute_delay=500 snd_soc_davinci_mcasp.amanero_mute_pins=8  snd_soc_botic.ext_masterclk=7 snd_soc_botic.clk_44k1=45158400 snd_soc_botic.clk_48k=49152000
+
+loadall=run loaduEnvtxt; run loadximage; run loadxfdt; run optargs;
+mmcargs=setenv bootargs console=${console} ${optargs} ${cape_disable} ${cape_enable} root=/dev/${bootpartition} rw rootfstype=ext4 rootwait ${cmdline}
+uenvcmd=run loadall; run mmcargs; bootz ${loadaddr} ${rdaddr}:${rdsize} ${fdtaddr};

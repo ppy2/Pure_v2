@@ -1,0 +1,24 @@
+pcm.!default {
+type plug
+slave {
+pcm botic-split
+channels 2
+}
+}
+
+ctl.!default {
+type
+hw card 0
+}
+
+pcm.botic-split {
+type route;
+slave {
+pcm "hw:0,0"
+channels 4
+}
+ttable.0.0 1;
+ttable.1.1 1;
+ttable.0.2 1;
+ttable.1.3 1;
+}

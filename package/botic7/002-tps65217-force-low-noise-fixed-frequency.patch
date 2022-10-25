@@ -1,0 +1,37 @@
+From fb0eb73748dfb4e87890eb2c07708ea36b07bb4d Mon Sep 17 00:00:00 2001
+From: Miroslav Rudisin <miero@seznam.cz>
+Date: Wed, 30 Nov 2016 22:56:56 +0100
+Subject: [PATCH] tps65217: force low-noise fixed frequency
+
+---
+ drivers/regulator/tps65217-regulator.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/regulator/tps65217-regulator.c b/drivers/regulator/tps65217-regulator.c
+index 2d12b9a..b05e610 100644
+--- a/drivers/regulator/tps65217-regulator.c
++++ b/drivers/regulator/tps65217-regulator.c
+@@ -258,7 +258,19 @@ static int tps65217_regulator_probe(struct platform_device *pdev)
+ 		tps->strobes[i] = val & regulators[i].bypass_mask;
+ 	}
+ 
+-	return 0;
++	ret = tps65217_set_bits(tps, TPS65217_REG_DEFSLEW,
++				   TPS65217_DEFSLEW_PFM_EN1, TPS65217_DEFSLEW_PFM_EN1,
++				   TPS65217_PROTECT_L2);
++	if (ret == 0)
++		ret = tps65217_set_bits(tps, TPS65217_REG_DEFSLEW,
++				   TPS65217_DEFSLEW_PFM_EN2, TPS65217_DEFSLEW_PFM_EN2,
++				   TPS65217_PROTECT_L2);
++	if (ret == 0)
++		ret = tps65217_set_bits(tps, TPS65217_REG_DEFSLEW,
++				   TPS65217_DEFSLEW_PFM_EN3, TPS65217_DEFSLEW_PFM_EN3,
++				   TPS65217_PROTECT_L2);
++
++	return ret;
+ }
+ 
+ static struct platform_driver tps65217_regulator_driver = {
+-- 
+2.1.4
+

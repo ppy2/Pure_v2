@@ -1,0 +1,10 @@
+bootfile=USB
+bootpartition=mmcblk1p1
+fdtfile=am335x-boneblack.dtb
+loadall=run loaduEnvtxt; run loadximage; run loadxfdt; run optargs;
+mmcargs=setenv bootargs console=${console} ${optargs} ${cape_disable} ${cape_enable} root=/dev/${bootpartition} rw rootfstype=ext4 rootwait ${cmdline}
+
+###################
+
+
+

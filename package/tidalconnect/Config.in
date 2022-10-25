@@ -1,0 +1,4 @@
+config BR2_PACKAGE_TIDALCONNECT
+	bool "tidalconnect"
+        help
+	  TidalConnect UNIX daemon. 

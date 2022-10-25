@@ -1,0 +1,8 @@
+config BR2_PACKAGE_BOTIC7
+	bool "botic7"
+	
+	help
+	    Linux kernel v4.9 with Botic driver support.
+	    http://bbb.ieero.com
+
+

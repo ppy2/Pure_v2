@@ -1,0 +1,30 @@
+#!/bin/sh
+
+# Sanity checks
+test -f /etc/mpd.conf || exit 0
+
+case "$1" in
+  start)
+        i=1
+            while [ $i -lt 300 ]
+                do
+                echo "Number: $i"
+                i=$((i+1))
+                network=`route |grep UG`
+                if [[ -n "$network"  ]]; then
+                break
+                fi
+                sleep 1
+            done
+
+    printf "Starting mpd: "
+    sync
+    start-stop-daemon --start --quiet --background --exec nice -n -10 /usr/bin/mpd \
+	&& echo "OK" || echo "FAIL"
+    ;;
+    stop)
+    killall mpd
+    ;;
+    *)
+	exit 1
+esac

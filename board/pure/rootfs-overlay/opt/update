@@ -1,0 +1,24 @@
+#!/bin/sh
+
+/opt/led.sh&
+
+chattr -i /etc/asound.conf
+sshpass -p 'oeretsad'  rsync -a --size-only \
+--exclude=.git \
+--exclude=/dev \
+--exclude=/proc \
+--exclude=/sys \
+--exclude=/mnt \
+--exclude=/etc/output \
+--exclude=/boot/uEnv.txt \
+--exclude=/var/www/user \
+--exclude=/var/www/user_plugins.php \
+--exclude=/usr/aprenderer/config.dat \
+dastereo@update.puredsd.ru::pure-v2 / > /dev/null 2>&1
+chattr +i /etc/asound.conf
+
+sync
+reboot -f
+
+
+

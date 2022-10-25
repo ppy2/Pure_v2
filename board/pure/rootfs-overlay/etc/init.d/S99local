@@ -1,0 +1,30 @@
+#!/bin/sh
+
+case "$1" in
+  start)
+    echo none > /sys/class/leds/beaglebone\:green\:usr0/trigger
+    echo none > /sys/class/leds/beaglebone\:green\:usr1/trigger
+    echo none > /sys/class/leds/beaglebone\:green\:usr2/trigger
+    echo none > /sys/class/leds/beaglebone\:green\:usr3/trigger
+    # Turn OFF PMIC power LED
+    i2cset -f -y 0 0x24 0x0b 0x6e
+    i2cset -f -y 0 0x24 0x13 0x00
+    i2cset -f -y 0 0x24 0x0b 0x6e
+    i2cset -f -y 0 0x24 0x13 0x00
+    # Turn ON PMIC power LED
+    #i2cset -f -y 0 0x24 0x0b 0x6e
+    #i2cset -f -y 0 0x24 0x13 0x38
+    #i2cset -f -y 0 0x24 0x0b 0x6e
+    #i2cset -f -y 0 0x24 0x13 0x38
+    
+
+ls /dev/mmcblk0p1 && mount /dev/mmcblk0p1 /boot
+echo /sbin/mdev > /proc/sys/kernel/hotplug
+/sbin/mdev -s
+
+echo 0 > /sys/class/gpio/gpio113/value
+        
+        ;;
+  *)
+	exit 1
+esac
