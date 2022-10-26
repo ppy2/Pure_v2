@@ -15,10 +15,11 @@ p
 +512M
 wq
 EOF
-
+sleep 1
 partprobe ; sync
-mkfs.ext4 -F -L rootfs -O ^metadata_csum,^64bit ${DISK}p1 ;sleep 1
 
+mkfs.ext4 -F -L rootfs -O ^metadata_csum,^64bit ${DISK}p1 ;sleep 1
+sleep 1
 mount ${DISK}p1 /mnt
 
 rsync -av --numeric-ids  --exclude='/proc' --exclude='/sys' --exclude='/mnt'  / /mnt/

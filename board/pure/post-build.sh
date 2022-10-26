@@ -1,6 +1,7 @@
 #!/bin/sh
 
 cp -f $BR2_EXTERNAL_PURE_PATH/board/pure/uEnv.txt $BINARIES_DIR/uEnv.txt
+cp -f $BR2_EXTERNAL_PURE_PATH/board/pure/interfaces $BINARIES_DIR/interfaces
 mv $BINARIES_DIR/zImage	$BINARIES_DIR/USB
 rm -f $TARGET_DIR/etc/init.d/*shairport-sync
 rm -f $TARGET_DIR/etc/init.d/*upmpdcli

@@ -266,7 +266,7 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 						
 						
 						<div class='row'>
-								<span class="title">ver. 24.10.2022</span>
+								<span class="title">ver.</span>
 								<div id='upd'>
 									<form method="post">
 										<?php
