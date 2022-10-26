@@ -16,13 +16,14 @@ p
 wq
 EOF
 sleep 1
-partprobe ; sync
-
-mkfs.ext4 -F -L rootfs -O ^metadata_csum,^64bit ${DISK}p1 ;sleep 1
+partprobe 
+sync
+sleep 1
+mkfs.ext4 -F -L rootfs -O ^metadata_csum,^64bit ${DISK}p1 
 sleep 1
 mount ${DISK}p1 /mnt
-
-rsync -av --numeric-ids  --exclude='/proc' --exclude='/sys' --exclude='/mnt'  / /mnt/
+sleep 1
+rsync -a --numeric-ids  --exclude='/proc' --exclude='/sys' --exclude='/mnt'  / /mnt/
 mkdir /mnt/proc /mnt/sys /mnt/boot/dtbs /mnt/mnt
 mv /mnt/boot/*.dtb  /mnt/boot/dtbs/
 rm /mnt/boot/MLO /mnt/boot/u-boot.img
