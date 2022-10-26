@@ -11,6 +11,7 @@ sshpass -p 'oeretsad'  rsync -a --size-only \
 --exclude=/mnt \
 --exclude=/etc/output \
 --exclude=/boot/uEnv.txt \
+--exclude=/boot/interfaces \
 --exclude=/var/www/user \
 --exclude=/var/www/user_plugins.php \
 --exclude=/usr/aprenderer/config.dat \
