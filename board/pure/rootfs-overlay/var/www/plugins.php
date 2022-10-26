@@ -122,7 +122,6 @@ include 'variables.php';
 			cursor: pointer;
 			display: table-cell;
 			margin: 0 0 0 -3px;
-			width: 100%;
 			height: 100%;
 			padding: 0px 10px 0px 31px;
 			vertical-align: middle;

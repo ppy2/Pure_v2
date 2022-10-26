@@ -350,9 +350,8 @@ input.selButtonText {
 	color: rgb(14, 14, 14);
     position: absolute;
     bottom: -30px;
-    display: block;
     display: table;
-    width: 51px;
+    min-width: 51px;
     height: 28px;
     /* padding: 5px 9px; */
     text-align: center;
@@ -473,4 +472,8 @@ border-radius:1px;
 z-index:1;
 padding:10px;
 }
+
+
+
+
 

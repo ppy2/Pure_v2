@@ -16,10 +16,9 @@ p
 wq
 EOF
 sleep 1
-partprobe 
-sync
+partprobe ; sync
 sleep 1
-mkfs.ext4 -F -L rootfs -O ^metadata_csum,^64bit ${DISK}p1 
+mkfs.ext4 -F -L rootfs -O ^metadata_csum,^64bit ${DISK}p1 ;sleep 1
 sleep 1
 mount ${DISK}p1 /mnt
 sleep 1
@@ -34,3 +33,6 @@ grep "optargs="  /boot/uEnv.txt  >>  /mnt/boot/uEnv.txt
 sync ; umount /mnt
 sleep 5
 poweroff
+#######################################################
+
+
