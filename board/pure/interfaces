@@ -4,7 +4,8 @@ iface lo inet loopback
 auto eth0
 
 ###### for DHCP ############
-iface eth0 inet dhcp
+iface eth0 inet manual
+    pre-up /sbin/udhcpc -t 10 -q
 
 ###### for static ip #######
 #iface eth0 inet static
