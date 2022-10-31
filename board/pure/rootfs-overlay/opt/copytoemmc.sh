@@ -28,7 +28,7 @@ sync ; sleep 1
 
 
 mount ${DISK}p1 /mnt
-rsync -av --numeric-ids  --exclude='/proc' --exclude='/sys' --exclude='/mnt'  / /mnt/
+rsync -a --numeric-ids  --exclude='/proc' --exclude='/sys' --exclude='/mnt'  / /mnt/
 mkdir /mnt/proc /mnt/sys /mnt/boot/dtbs /mnt/mnt
 mv /mnt/boot/*.dtb  /mnt/boot/dtbs/
 rm /mnt/boot/MLO /mnt/boot/u-boot.img
