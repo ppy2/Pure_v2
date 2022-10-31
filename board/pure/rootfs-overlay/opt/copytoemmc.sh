@@ -39,3 +39,14 @@ grep "optargs="  /boot/uEnv.txt  >>  /mnt/boot/uEnv.txt
 
 sync
 poweroff
+
+
+
+
+
+
+
+
+
+
+
