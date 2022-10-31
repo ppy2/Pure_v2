@@ -412,7 +412,7 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 	
 	} else if(isset($_POST['updateFirmW']) && $_POST["updateFirmW"] != "" ){
 		echo '<script type="text/javascript">updatePage();</script>';
-		echo '<script type="text/javascript">setTimeout(function() {getUpdateOutput(); }, 15000);</script>';
+		echo '<script type="text/javascript">setTimeout(function() {getUpdateOutput(); }, 25000);</script>';
 		exec ('/opt/update' . '>/dev/null &');
 	
 	} else if(isset($_POST['hostname']) && $_POST["hostname"] != "" ){
@@ -437,5 +437,4 @@ function getUpdateOutput() {
 <br>
 
 
-
-
+                                               

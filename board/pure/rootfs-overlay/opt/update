@@ -1,6 +1,6 @@
 #!/bin/sh
 
-/opt/led.sh&
+nice -n 19 /opt/led.sh&
 
 chattr -i /etc/asound.conf
 sshpass -p 'oeretsad'  rsync -a --size-only \
