@@ -4,9 +4,12 @@ case "$1" in
   start)
 
     /opt/mute.sh
+############ reset registers DSC2 ################
+    /usr/bin/aplay /opt/silent_quarter-second.wav
+##################################################
     cat /etc/random-seed >/dev/urandom
     /sbin/rndaddtoentcnt 1024
-            
+
     echo 113 > /sys/class/gpio/export
     echo out > /sys/class/gpio/gpio113/direction
     echo 1 > /sys/class/gpio/gpio113/value
@@ -21,7 +24,7 @@ case "$1" in
     echo "nameserver 1.1.1.1" >> /tmp/resolv.conf
     echo "nameserver 8.8.8.8" >> /tmp/resolv.conf
     /sbin/sysctl -p
-
+    /usr/bin/aplay /opt/silent_quarter-second.wav
     ;;
     
   stop)    
