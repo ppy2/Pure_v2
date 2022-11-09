@@ -18,10 +18,10 @@ case "$1" in
     #i2cset -f -y 0 0x24 0x13 0x38
     
 
-echo /sbin/mdev > /proc/sys/kernel/hotplug
-/sbin/mdev -s
+    echo /sbin/mdev > /proc/sys/kernel/hotplug
+    /sbin/mdev -s
 
-echo 0 > /sys/class/gpio/gpio113/value
+    /opt/unmute.sh
         
         ;;
   *)

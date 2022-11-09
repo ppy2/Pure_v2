@@ -2,10 +2,11 @@
 
 case "$1" in
   start)
-    
+
+    /opt/mute.sh
     cat /etc/random-seed >/dev/urandom
     /sbin/rndaddtoentcnt 1024
-    
+            
     echo 113 > /sys/class/gpio/export
     echo out > /sys/class/gpio/gpio113/direction
     echo 1 > /sys/class/gpio/gpio113/value
@@ -14,19 +15,19 @@ case "$1" in
     echo 1 > /sys/class/gpio/gpio51/value
     echo 60 > /sys/class/gpio/export
     echo in > /sys/class/gpio/gpio60/direction
-
     echo 256 > /proc/asound/card0/pcm0p/sub0/prealloc
-    echo 256 > /proc/asound/card1/pcm0p/sub0/prealloc
-    
     ls /dev/mmcblk0p1 && mount /dev/mmcblk0p1 /boot
     test -f /etc/output || echo USB > /etc/output
-    grep -q I2S /etc/output && /etc/rc.pure/S10mute start
     echo "nameserver 1.1.1.1" >> /tmp/resolv.conf
     echo "nameserver 8.8.8.8" >> /tmp/resolv.conf
-
     /sbin/sysctl -p
 
     ;;
+    
+  stop)    
+    /opt/mute.sh
+        
+    ;;    
  *)
     exit 1
 esac

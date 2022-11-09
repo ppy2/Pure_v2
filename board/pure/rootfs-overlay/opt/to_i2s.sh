@@ -9,7 +9,8 @@ echo MM-- > /sys/module/snd_soc_botic/parameters/serconfig
 echo I2S > /etc/output
 chattr +i /etc/asound.conf
 sync
-reboot -f
+reboot 
+
 
 
 
