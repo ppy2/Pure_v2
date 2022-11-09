@@ -24,7 +24,7 @@ case "$1" in
     echo "nameserver 1.1.1.1" >> /tmp/resolv.conf
     echo "nameserver 8.8.8.8" >> /tmp/resolv.conf
     /sbin/sysctl -p
-    /usr/bin/aplay /opt/silent_quarter-second.wav
+    
     ;;
     
   stop)    
