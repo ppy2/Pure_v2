@@ -21,6 +21,7 @@ case "$1" in
     echo /sbin/mdev > /proc/sys/kernel/hotplug
     /sbin/mdev -s
 
+    echo 0 > /sys/class/gpio/gpio113/value    
     /opt/unmute.sh
         
         ;;
