@@ -10,9 +10,9 @@ case "$1" in
     cat /etc/random-seed >/dev/urandom
     /sbin/rndaddtoentcnt 1024
 
-    echo 113 > /sys/class/gpio/export
-    echo out > /sys/class/gpio/gpio113/direction
-    echo 1 > /sys/class/gpio/gpio113/value
+    echo 49 > /sys/class/gpio/export
+    echo out > /sys/class/gpio/gpio49/direction
+    echo 1 > /sys/class/gpio/gpio49/value
     echo 51 > /sys/class/gpio/export
     echo out > /sys/class/gpio/gpio51/direction
     echo 1 > /sys/class/gpio/gpio51/value

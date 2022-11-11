@@ -9,5 +9,8 @@ echo MM-- > /sys/module/snd_soc_botic/parameters/serconfig
 echo "I2SLR" > /etc/output
 chattr +i /etc/asound.conf
 sync
-reboot 
+reboot -f
+
+
+
 

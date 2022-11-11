@@ -10,7 +10,8 @@ echo SPDIF > /etc/output
 /etc/rc.pure/S10mute stop > /dev/null 2>&1
 chattr +i /etc/asound.conf
 sync
-reboot 
+reboot -f
+
 
 
 

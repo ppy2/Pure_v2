@@ -26,7 +26,7 @@ fi
 
     sleep 0.5
 
-if curl -s ipinfo.io | grep -q '"RU"' ; then
+if curl -s ipinfo.io | grep -q -e '"RU"' -e '"BY"'; then
     start-stop-daemon --start --quiet --background --exec /usr/bin/proxychains4 /usr/bin/start_tc  \
     && echo "OK" || echo "FAIL"
 else

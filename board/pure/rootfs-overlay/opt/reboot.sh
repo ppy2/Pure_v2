@@ -1,5 +1,6 @@
 #!/bin/sh
 
 sync
-reboot
+reboot -f
+
 

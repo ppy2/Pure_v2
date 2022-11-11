@@ -19,7 +19,8 @@ dastereo@update.puredsd.ru::pure-v2 / > /dev/null 2>&1
 chattr +i /etc/asound.conf
 
 sync
-reboot
+reboot -f
+
 
 
 
