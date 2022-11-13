@@ -137,7 +137,7 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 									</div>
 									<div class='cell'>
 										<?php
-										 $a = `pidof librespot`;
+										 $a = `pidof lirbrespot`;
 										 if (empty($a)){
 										 echo '<input type="submit" name="spotifyButton" value="" id="spotifyButton" class="unselButton"/><input type="submit" id="spotifyText" name="spotifyButton" value="Spotify Connect" class="unselButtonText"/>';
 										 } else {
@@ -242,10 +242,12 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 						<div class='row'>
 							<div id='eMMC' >
 								<span class="warn title">Attention!</font></span>
-								<span>This command will format and destroy old data on eMMC!</span><br>
+								<span>This command will format and destroy old data!</span><br>
 								<span>The D2-D5 leds indicates that copying is in progress.</span>
 								<form method="post">
-									<div class='buttonSpacer'><input type="submit" name="emmc" id="emmc" value="Copy SD to eMMC" /><br></div>
+									<div class='buttonSpacer'><input type="submit" name="emmc" id="emmc" value="SD to eMMC" /><br></div>
+									<div class='buttonSpacer'><value="     " /><br></div>
+									<div class='buttonSpacer'><input type="submit" name="sd" id="sd" value="eMMC to SD" /><br></div>
 								</form>
 								<?php
 								    function testfun()
@@ -255,10 +257,24 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 									if (empty($EMMC)) { 
 									echo '<br><font color = "white">You don`t have built-in eMMC memory.</font>' ;
 									}
-									elseif (empty($ROOT)) { echo '<br><font color = "white">This system is already loaded from eMMC.</font>' ; }
+									elseif (empty($ROOT)) { echo '<br><br><font color = "white">This system is already loaded from eMMC.</font>' ; }
 									else { echo '<script type="text/javascript">updatePage();</script>' ; `/opt/copytoemmc.sh` ; }
 									}
+
+									function testfun2()
+									{
+									$ROOT = `grep mmcblk1 /proc/cmdline` ;
+									if (empty($ROOT)) { 
+									echo '<br><br><font color = "white">You have already booted from the SD. Boot from eMMC and install a blank SD to write it.</font>' ;
+									}
+									else { 
+									echo '<script type="text/javascript">updatePage();</script>' ; 
+									echo '<script type="text/javascript">setTimeout(function() {window.location = window.location.href; }, 90000);</script>';
+									exec ('/opt/copytosd.sh' . '>/dev/null &');
+									 } ;
+									}
 								if(array_key_exists('emmc',$_POST)){ testfun(); }
+								if(array_key_exists('sd',$_POST)){ testfun2(); }
 								?>
 							</div>
 						</div>
@@ -455,13 +471,4 @@ function getUpdateOutput() {
 <br>
 
 
-                                                
-
-
-
-
-
-
-
-
-
+                    

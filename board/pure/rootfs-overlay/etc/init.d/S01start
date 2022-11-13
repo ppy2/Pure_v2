@@ -3,27 +3,29 @@
 case "$1" in
   start)
 
+    echo 49 > /sys/class/gpio/export
+    echo out > /sys/class/gpio/gpio49/direction
+    echo 1 > /sys/class/gpio/gpio49/value
+
     /opt/mute.sh
 ############ reset registers DSC2 ################
     /usr/bin/aplay /opt/silent_quarter-second.wav
 ##################################################
+    
     cat /etc/random-seed >/dev/urandom
     /sbin/rndaddtoentcnt 1024
 
-    echo 49 > /sys/class/gpio/export
-    echo out > /sys/class/gpio/gpio49/direction
-    echo 1 > /sys/class/gpio/gpio49/value
     echo 51 > /sys/class/gpio/export
     echo out > /sys/class/gpio/gpio51/direction
     echo 1 > /sys/class/gpio/gpio51/value
     echo 60 > /sys/class/gpio/export
     echo in > /sys/class/gpio/gpio60/direction
     echo 256 > /proc/asound/card0/pcm0p/sub0/prealloc
-    ls /dev/mmcblk0p1 && mount /dev/mmcblk0p1 /boot
+    ls /dev/mmcblk0p2 && mount /dev/mmcblk0p1 /boot
     test -f /etc/output || echo USB > /etc/output
     echo "nameserver 1.1.1.1" >> /tmp/resolv.conf
     echo "nameserver 8.8.8.8" >> /tmp/resolv.conf
-    /sbin/sysctl -p
+    grep -q "5.10.131" /proc/version && echo USB > /etc/output
     
     ;;
     
@@ -34,4 +36,13 @@ case "$1" in
  *)
     exit 1
 esac
+
+
+
+
+
+
+
+
+
 
