@@ -1,48 +1,25 @@
 #!/bin/sh
 
-nice -n 19 /opt/led.sh&
-
-export DISK=/dev/mmcblk1
-dd if=/dev/zero of=${DISK} bs=1M count=20
-dd if=/opt/backup/MLO of=${DISK} count=1 seek=1 bs=128k
-dd if=/opt/backup/u-boot.img of=${DISK} count=2 seek=1 bs=384k
+nice /opt/led.sh&
+renice -n 19 `pidof led.sh`
+dd if=/opt/emmc.img of=/dev/mmcblk1 bs=1K
+dd if=/opt/backup/MLO of=/dev/mmcblk1 count=1 seek=1 bs=128k
+dd if=/opt/backup/u-boot.img of=/dev/mmcblk1 count=2 seek=1 bs=384k
+sync 
+echo -e "o\n n\n p\n 1\n 8192\n +512M\n a\n 1\n w" | fdisk /dev/mmcblk1
 sync ; sleep 1
-
-fdisk -u ${DISK} <<EOF
-n
-p
-1
-8192
-+512M
-a
-1
-p
-w
-EOF
-
-partprobe
-sync ; sleep 1
-
-mkfs.ext4 -F -L rootfs -O ^metadata_csum,^64bit ${DISK}p1
-sync ; sleep 1
-
-
-mount ${DISK}p1 /mnt
+partprobe /dev/mmcblk1
+sync
+mkfs.ext4 -F -L rootfs -O ^metadata_csum,^64bit /dev/mmcblk1p1
+sync
+mount /dev/mmcblk1p1 /mnt 
+sync
 rsync -a --numeric-ids  --exclude='/proc' --exclude='/sys' --exclude='/mnt'  / /mnt/
-mkdir /mnt/proc /mnt/sys /mnt/boot/dtbs /mnt/mnt
-mv /mnt/boot/*.dtb  /mnt/boot/dtbs/
-rm /mnt/boot/MLO /mnt/boot/u-boot.img
-
-cp /opt/backup/uEnv.txt /mnt/boot/
-echo "" >> /mnt/boot/uEnv.txt
-grep "optargs="  /boot/uEnv.txt  >>  /mnt/boot/uEnv.txt
-
+mkdir -p /mnt/proc /mnt/sys /mnt/mnt /mnt/boot/dtbs
+mv /mnt/boot/*.dtb /mnt/boot/dtbs/
+cp -f /opt/backup/uEnv.txt /mnt/boot/
 sync
 poweroff
-
-
-
-
 
 
 

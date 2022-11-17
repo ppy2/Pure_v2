@@ -20,6 +20,11 @@ case "$1" in
 
     echo /sbin/mdev > /proc/sys/kernel/hotplug
     /sbin/mdev -s
+    
+    if [ -f /boot/am335x-boneblack.dtb ]; then
+        mkdir /boot/dtbs
+        mv -f /boot/*.dtb /boot/dtbs/
+    fi
 
     /opt/unmute.sh
         
