@@ -459,7 +459,7 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 		exec ( 'echo '.$name.' > /etc/hostname' );
                 exec ('/opt/reboot.sh' . '>/dev/null &');
 	} ; 
-	`sleep 0.2 ; renice -15 -u pure`
+	`/opt/renice.sh`
 ?>
 
 <script type="text/javascript">

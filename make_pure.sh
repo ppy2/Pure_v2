@@ -7,9 +7,6 @@ cd buildroot
 git checkout 3f0ee529083e972be9893676fab00ac50c2816c3
 make BR2_EXTERNAL=../ pure_defconfig
 
-############## backports ###########################
-rm -Rf package/dhcpcd ; cp -R ../board/pure/backports/dhcpcd package/
-####################################################
 
 make
 
