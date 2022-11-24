@@ -1,7 +1,7 @@
 #!/bin/sh
 
 NAME=`hostname`_`ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`
-OPTIONS="-D 1000:u32be -r 44100-705600:1000 -a 400:3::0 -M $NAME"
+OPTIONS="-z -D 1000:u32be -r 44100-705600:1000 -a 400:3::0 -M $NAME"
 
 case "$1" in
     start)
@@ -18,7 +18,7 @@ i=1
     sleep 1
 done
         printf "Starting Squeezelite: "
-        start-stop-daemon --start --quiet --background --exec nice -n -10 /usr/bin/squeezelite -- $OPTIONS
+        sudo -u pure /usr/bin/squeezelite $OPTIONS
                 ;;
     stop)
     killall squeezelite

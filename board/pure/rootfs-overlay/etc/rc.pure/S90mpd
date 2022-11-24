@@ -19,8 +19,7 @@ case "$1" in
 
     printf "Starting mpd: "
     sync
-    start-stop-daemon --start --quiet --background --exec nice -n -10 /usr/bin/mpd \
-	&& echo "OK" || echo "FAIL"
+    sudo -u pure /usr/bin/mpd 
     ;;
     stop)
     killall mpd

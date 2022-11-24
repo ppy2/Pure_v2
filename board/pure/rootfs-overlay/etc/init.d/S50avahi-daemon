@@ -5,7 +5,7 @@
 DAEMON=/usr/sbin/avahi-daemon
 case "$1" in
     start)
-	$DAEMON -c || $DAEMON -D
+	nice -n 19 $DAEMON -c || nice -n 19 $DAEMON -D
 	;;
     stop)
 	$DAEMON -c && $DAEMON -k

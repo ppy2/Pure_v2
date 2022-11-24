@@ -13,5 +13,6 @@ echo "uprclautostart = 1" > $TARGET_DIR/etc/upmpdcli.conf
 echo "friendlyname = PureOS" >> $TARGET_DIR/etc/upmpdcli.conf
 sed -i 's/^socks4.*/socks5 5.181.76.125 52993 dastereo oeretsad/g' $TARGET_DIR/etc/proxychains.conf
 sed -i "s/ver.<\/span>/ver. $DATE<\/span>/g" $TARGET_DIR/var/www/tabs.php
+sed -i "s/console::respawn/#console::respawn/g" $TARGET_DIR/etc/inittab
 echo " " >> $TARGET_DIR/var/www/tabs.php
 

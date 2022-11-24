@@ -21,9 +21,7 @@ done
         printf "Starting $NAME: "
 	NAME=`hostname`_`ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`
 	sed -i "s/^friendlyname.*/friendlyname = $NAME/" /etc/upmpdcli.conf
-	start-stop-daemon --start --quiet --background --exec /usr/bin/upmpdcli \
-                -- $DAEMON_ARGS \
-                && echo "OK" || echo "FAIL"
+	/usr/bin/upmpdcli $DAEMON_ARGS 
                 ;;
         stop)
         killall upmpdcli

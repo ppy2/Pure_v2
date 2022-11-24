@@ -2,7 +2,7 @@
 
 nice /opt/led.sh&
 renice -n 19 `pidof led.sh`
-dd if=/opt/emmc.img of=/dev/mmcblk1 bs=1K
+dd if=/dev/zero of=/dev/mmcblk1 bs=1M count=10
 dd if=/opt/backup/MLO of=/dev/mmcblk1 count=1 seek=1 bs=128k
 dd if=/opt/backup/u-boot.img of=/dev/mmcblk1 count=2 seek=1 bs=384k
 sync 
@@ -20,10 +20,5 @@ mv /mnt/boot/*.dtb /mnt/boot/dtbs/
 cp -f /opt/backup/uEnv.txt /mnt/boot/
 sync
 poweroff
-
-
-
-
-
 
 

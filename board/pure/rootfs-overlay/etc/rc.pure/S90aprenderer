@@ -22,8 +22,9 @@ case "$1" in
     NAME=`hostname`_`ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`
     sed -i -e "s/<mac>.*<\/mac>/<mac>$MAC<\/mac>/g" /usr/aprenderer/upnp/config.xml
     sed -i -e "s/<name>.*<\/name>/<name>$NAME<\/name>/g" /usr/aprenderer/upnp/config.xml
-    /usr/aprenderer/upnp/squeeze2upnp -z -k -x /usr/aprenderer/upnp/config.xml > /dev/null 2>&1
-    cd /usr/aprenderer; nice -n -10 ./ap2renderer > /dev/null 2>&1 && echo "OK" || echo "FAIL"
+    chown pure:pure /usr/aprenderer/*
+    sudo -u pure /usr/aprenderer/upnp/squeeze2upnp -z -k -x /usr/aprenderer/upnp/config.xml > /dev/null 2>&1
+    cd /usr/aprenderer; sudo -u pure ./ap2renderer > /dev/null 2>&1 && echo "OK" || echo "FAIL"
     sync    
     ;;
   stop)

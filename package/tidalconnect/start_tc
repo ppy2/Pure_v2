@@ -2,7 +2,7 @@
 
 NAME=`hostname`_`ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`
 
-/usr/bin/tcon \
+sudo -u pure /usr/bin/tcon \
 --netif-for-deviceid eth0 \
 -f $NAME \
 --codec-mpegh false \
@@ -11,7 +11,7 @@ NAME=`hostname`_`ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`
 --disable-app-security false \
 --disable-web-security true \
 --enable-mqa-passthrough true \
---log-level 0 \
+--log-level 3 \
 --tc-certificate-path "/etc/ssl/private/tcon.crt" \
 --clientid "VCjoaRrbaMU005Tk" \
 #--playback-device "jack" \

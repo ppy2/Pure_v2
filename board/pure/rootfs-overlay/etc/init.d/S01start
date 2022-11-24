@@ -26,6 +26,7 @@ case "$1" in
     echo "nameserver 1.1.1.1" >> /tmp/resolv.conf
     echo "nameserver 8.8.8.8" >> /tmp/resolv.conf
     grep -q "5.10.131" /proc/version && echo USB > /etc/output
+    chmod 777 /run
     
     ;;
     

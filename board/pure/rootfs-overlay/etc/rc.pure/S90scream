@@ -3,7 +3,7 @@
 case "$1" in
     start)
     printf "Starting Scream: "
-    nice -n -10 /usr/sbin/scream  > /dev/null 2>&1 &
+    sudo -u pure /usr/sbin/scream  > /dev/null 2>&1 &
 	;;
     stop)
     killall scream

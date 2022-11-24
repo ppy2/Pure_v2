@@ -137,7 +137,7 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 									</div>
 									<div class='cell'>
 										<?php
-										 $a = `pidof lirbrespot`;
+										 $a = `pidof librespot`;
 										 if (empty($a)){
 										 echo '<input type="submit" name="spotifyButton" value="" id="spotifyButton" class="unselButton"/><input type="submit" id="spotifyText" name="spotifyButton" value="Spotify Connect" class="unselButtonText"/>';
 										 } else {
@@ -303,8 +303,8 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 <?php
 	if(isset($_POST['naaButton'])){
 		{`/opt/mute.sh ;
-		killall -9 mpd upmpdcli startroon.sh raat_app shairport-sync squeezelite spotifyd librespot scream ;
-                /etc/init.d/S90aprenderer stop ;
+		killall -9 mpd upmpdcli raat_app shairport-sync squeezelite spotifyd librespot scream networkaudiod ;
+                /etc/rc.pure/S90aprenderer stop ;
                 rm /etc/init.d/S90* ;
                 /etc/rc.pure/S90tidal stop ;
                 cp /etc/rc.pure/S90naa /etc/init.d/ && sync ; 
@@ -317,8 +317,8 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 		echo '<script type="text/javascript">console.log("button1");</script>';
 	} else if(isset($_POST['raatButton'])){ 
 		{`/opt/mute.sh ;
-		killall -9 networkaudiod mpd upmpdcli shairport-sync squeezelite spotifyd librespot scream ;
-		/etc/init.d/S90aprenderer stop ;
+		killall -9 networkaudiod mpd upmpdcli shairport-sync squeezelite spotifyd librespot scream raat_app;
+		/etc/rc.pure/S90aprenderer stop ;
 		rm /etc/init.d/S90* ;
 		/etc/rc.pure/S90tidal stop ;
 		cp /etc/rc.pure/S90roonready /etc/init.d/ && sync ; 
@@ -330,20 +330,22 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 		echo '<script type="text/javascript">document.getElementById("raatText").classList.remove("unselButtonText"); document.getElementById("raatText").classList.add("selButtonText");</script>';
 	} else if(isset($_POST['mpdButton'])){ 
                 {`/opt/mute.sh ;
-		killall -9 networkaudiod startroon.sh raat_app shairport-sync squeezelite spotifyd librespot scream ; 
-    		/etc/init.d/S90aprenderer stop ;
+		killall -9 networkaudiod raat_app shairport-sync squeezelite spotifyd librespot scream mpd ; 
+    		/etc/rc.pure/S90aprenderer stop ;
 		rm /etc/init.d/S90* ;
 		/etc/rc.pure/S90tidal stop ;
                 cp /etc/rc.pure/S90mpd /etc/init.d/ ; cp /etc/rc.pure/S90upmpdcli /etc/init.d/ && sync ;
                 /etc/rc.pure/S90mpd start ; /etc/rc.pure/S90upmpdcli start ;
-                /opt/unmute.sh` ;
+                renice 0 -u upmpdcli ;
+		/opt/unmute.sh` ;
                 }
 		echo '<script type="text/javascript">removeSelButtons();</script>';
 		echo '<script type="text/javascript">document.getElementById("mpdButton").classList.remove("unselButton"); document.getElementById("mpdButton").classList.add("selButton");</script>';
 		echo '<script type="text/javascript">document.getElementById("mpdText").classList.remove("unselButtonText"); document.getElementById("mpdText").classList.add("selButtonText");</script>';
 	} else if(isset($_POST['aplayerButton'])){ 
                 {`/opt/mute.sh ;
-		killall -9 mpd upmpdcli startroon.sh raat_app networkaudiod shairport-sync squeezelite spotifyd librespot scream ; 
+		killall -9 mpd upmpdcli raat_app networkaudiod shairport-sync squeezelite spotifyd librespot scream ; 
+		/etc/rc.pure/S90aprenderer stop ;
 		rm /etc/init.d/S90* ;
 		/etc/rc.pure/S90tidal stop ;
                 cp /etc/rc.pure/S90aprenderer /etc/init.d/ && sync ; 
@@ -356,8 +358,8 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 		echo '<script type="text/javascript">document.getElementById("settingsLink").style.display="block";</script>';
 	} else if(isset($_POST['airPlayButton'])){ 
 		{`/opt/mute.sh ;
-		killall -9 mpd upmpdcli startroon.sh raat_app networkaudiod squeezelite spotifyd librespot scream ; 
-		/etc/init.d/S90aprenderer stop ;
+		killall -9 mpd upmpdcli raat_app networkaudiod squeezelite spotifyd librespot scream shairport-sync ; 
+		/etc/rc.pure/S90aprenderer stop ;
 		rm /etc/init.d/S90* ;
 		/etc/rc.pure/S90tidal stop ;
 		cp /etc/rc.pure/S90shairport-sync /etc/init.d/ && sync ; 
@@ -369,8 +371,8 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 		echo '<script type="text/javascript">document.getElementById("airPlayText").classList.remove("unselButtonText"); document.getElementById("airPlayText").classList.add("selButtonText");</script>';
 	} else if(isset($_POST['lmsButton'])){ 
 		{`/opt/mute.sh ;
-		killall -9 mpd upmpdcli startroon.sh raat_app networkaudiod shairport-sync spotifyd librespot scream ; 
-		/etc/init.d/S90aprenderer stop ;
+		killall -9 mpd upmpdcli raat_app networkaudiod shairport-sync spotifyd librespot scream squeezelite ; 
+		/etc/rc.pure/S90aprenderer stop ;
 		rm /etc/init.d/S90* ;
 		/etc/rc.pure/S90tidal stop ;
 		cp /etc/rc.pure/S90squeezelite /etc/init.d/ && sync ; 
@@ -382,8 +384,8 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 		echo '<script type="text/javascript">document.getElementById("lmsText").classList.remove("unselButtonText"); document.getElementById("lmsText").classList.add("selButtonText");</script>';
 	} else if(isset($_POST['spotifyButton'])){ 
 		{`/opt/mute.sh ;
-		killall -9 mpd upmpdcli startroon.sh raat_app networkaudiod shairport-sync squeezelite scream ; 
-		/etc/init.d/S90aprenderer stop ;
+		killall -9 mpd upmpdcli raat_app networkaudiod shairport-sync squeezelite scream spotifyd librespot ; 
+		/etc/rc.pure/S90aprenderer stop ;
 		rm /etc/init.d/S90* ;
 		/etc/rc.pure/S90tidal stop ;
 		cp /etc/rc.pure/S90spotify /etc/init.d/ && sync ; 
@@ -395,8 +397,8 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 		echo '<script type="text/javascript">document.getElementById("spotifyText").classList.remove("unselButtonText"); document.getElementById("spotifyText").classList.add("selButtonText");</script>';
 	} else if(isset($_POST['screamButton'])){ 
 		{`/opt/mute.sh ;
-		killall -9 mpd upmpdcli startroon.sh raat_app networkaudiod shairport-sync squeezelite spotifyd librespot ; 
-		/etc/init.d/S90aprenderer stop ;
+		killall -9 mpd upmpdcli raat_app networkaudiod shairport-sync squeezelite spotifyd librespot scream ; 
+		/etc/rc.pure/S90aprenderer stop ;
 		rm /etc/init.d/S90* ;
 		/etc/rc.pure/S90tidal stop ;
 		cp /etc/rc.pure/S90scream /etc/init.d/ && sync ; 
@@ -408,8 +410,9 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 		echo '<script type="text/javascript">document.getElementById("screamText").classList.remove("unselButtonText"); document.getElementById("screamText").classList.add("selButtonText");</script>';
 	} else if(isset($_POST['tidalButton'])){ 
 		{`/opt/mute.sh ;
-		killall -9 mpd upmpdcli startroon.sh raat_app networkaudiod shairport-sync squeezelite spotifyd librespot scream; 
-		/etc/init.d/S90aprenderer stop ;
+		killall -9 mpd upmpdcli raat_app networkaudiod shairport-sync squeezelite spotifyd librespot scream; 
+		/etc/rc.pure/S90aprenderer stop ;
+		/etc/rc.pure/S90tidal stop ;
 		rm /etc/init.d/S90* ;
 		cp /etc/rc.pure/S90tidal /etc/init.d/ && sync ; 
 		/etc/rc.pure/S90tidal start ; 
@@ -456,6 +459,7 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 		exec ( 'echo '.$name.' > /etc/hostname' );
                 exec ('/opt/reboot.sh' . '>/dev/null &');
 	} ; 
+	`sleep 0.2 ; renice -15 -u pure`
 ?>
 
 <script type="text/javascript">
@@ -469,6 +473,3 @@ function getUpdateOutput() {
 </script>
 </body>   
 <br>
-
-
-                    

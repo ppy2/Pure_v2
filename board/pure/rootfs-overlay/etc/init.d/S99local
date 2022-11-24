@@ -17,16 +17,14 @@ case "$1" in
     #i2cset -f -y 0 0x24 0x0b 0x6e
     #i2cset -f -y 0 0x24 0x13 0x38
     
-    if [ -f /boot/am335x-boneblack.dtb ]; then
-        mkdir /boot/dtbs
-        mv -f /boot/*.dtb /boot/dtbs/
-    fi
-
     /opt/unmute.sh
-
     echo /sbin/mdev > /proc/sys/kernel/hotplug
     /sbin/mdev -s
-        
+    renice -n 19 -u avahi
+    renice -n 19 -u dbus
+    renice -n 19 `pidof dropbear`
+    renice `grep '\-u pure' /var/www/tabs.php |awk '{ print $5}'` -u pure
+            
         ;;
   *)
 	exit 1
