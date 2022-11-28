@@ -8,8 +8,10 @@ case "$1" in
 then
     nohup /usr/bin/jackd -d alsa -r 44100 -P default  > /dev/null 2>&1 &
     sed -i 's/^#--playback-device/--playback-device/g' /usr/bin/start_tc
+    sed -i 's/sudo -u pure/sudo -u root/g' /usr/bin/start_tc
 else
     sed -i 's/^--playback-device/#--playback-device/g' /usr/bin/start_tc
+    sed -i 's/sudo -u root/sudo -u pure/g' /usr/bin/start_tc
 fi
 
     i=1

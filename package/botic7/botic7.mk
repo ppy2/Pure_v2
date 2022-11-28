@@ -31,10 +31,6 @@ BOTIC7_KCONFIG_SUPPORTS_DEFCONFIG = NO
 BOTIC7_KCONFIG_EDITORS = menuconfig xconfig gconfig
 BOTIC7_KCONFIG_OPTS = $(BOTIC7_MAKE_OPTS)
 
-#define BOTIC7_USERS
-#    pure -1 pure -1 * - - audio 
-#endef
-
 
 define BOTIC7_BUILD_CMDS
 	$(BOTIC7_MAKE_ENV) $(MAKE) $(BOTIC7_MAKE_OPTS) -C $(@D)

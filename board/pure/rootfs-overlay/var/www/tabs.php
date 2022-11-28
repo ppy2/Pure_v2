@@ -459,7 +459,7 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 		exec ( 'echo '.$name.' > /etc/hostname' );
                 exec ('/opt/reboot.sh' . '>/dev/null &');
 	} ; 
-	`/opt/renice.sh`
+	exec ('/opt/renice.sh' . '>/dev/null &') ;
 ?>
 
 <script type="text/javascript">
@@ -473,3 +473,4 @@ function getUpdateOutput() {
 </script>
 </body>   
 <br>
+
