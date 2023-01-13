@@ -2,6 +2,7 @@
 
 case "$1" in
   start)
+
     echo none > /sys/class/leds/beaglebone\:green\:usr0/trigger
     echo none > /sys/class/leds/beaglebone\:green\:usr1/trigger
     echo none > /sys/class/leds/beaglebone\:green\:usr2/trigger
@@ -17,14 +18,19 @@ case "$1" in
     #i2cset -f -y 0 0x24 0x0b 0x6e
     #i2cset -f -y 0 0x24 0x13 0x38
     
+    grep -q USB /etc/output && echo /sbin/mdev > /proc/sys/kernel/hotplug
     /opt/unmute.sh
-    echo /sbin/mdev > /proc/sys/kernel/hotplug
-    /sbin/mdev -s
+    chmod 777 /tmp/reload.sh
     renice -n 19 -u avahi
     renice -n 19 -u dbus
     renice -n 19 `pidof dropbear`
-    /opt/renice.sh
-            
+    renice -n 19 `pidof dhcpcd`
+    renice -n 19 `pidof getty`
+    touch /tmp/done
+    chattr +i /etc/asound.conf
+    echo "snd/pcmC0D0p 0:0 660 @/etc/init.d/S95* restart" >/tmp/mdev.conf
+
+        
         ;;
   *)
 	exit 1

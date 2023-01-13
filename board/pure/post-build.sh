@@ -7,6 +7,8 @@ rm -f $TARGET_DIR/etc/init.d/*shairport-sync
 rm -f $TARGET_DIR/etc/init.d/*upmpdcli
 rm -f $TARGET_DIR/etc/init.d/*urandom
 rm -f $TARGET_DIR/etc/init.d/*mpd
+rm -f $TARGET_DIR/etc/init.d/*mdev
+rm -f $TARGET_DIR/etc/init.d/S41dhcpcd
 rm -f -r $TARGET_DIR/etc/alsa
 DATE=`date +"%d.%m.%Y"`
 echo "uprclautostart = 1" > $TARGET_DIR/etc/upmpdcli.conf

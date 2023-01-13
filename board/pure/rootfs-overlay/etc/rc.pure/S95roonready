@@ -1,0 +1,26 @@
+#!/bin/sh
+
+start() {
+    printf "Starting RoonBrige: "
+    MAC=`cat /sys/class/net/eth0/address | tr 'a-z' 'A-Z'`
+    sed -i "s/^.*\"unique_id\".*/    \"unique_id\": \"$MAC\" ,/" /etc/raat.conf
+    /opt/RoonReady/raat_app /etc/raat.conf > /dev/null 2>&1 &
+    renice -15 `pidof raat_app`
+    }
+stop() {
+    killall -9 raat_app
+}
+restart() {
+	stop
+	start
+}
+case "$1" in
+  start|stop|restart)
+	"$1"
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit $?

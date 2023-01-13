@@ -2,7 +2,7 @@
 
 NAME=`hostname`_`ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`
 
-sudo -u pure /usr/bin/tcon \
+/usr/bin/tcon \
 --netif-for-deviceid eth0 \
 -f $NAME \
 --codec-mpegh false \
@@ -16,6 +16,8 @@ sudo -u pure /usr/bin/tcon \
 --clientid "VCjoaRrbaMU005Tk" \
 #--playback-device "jack" \
 > /dev/null 2>&1 &
+exit
+
 
 
 

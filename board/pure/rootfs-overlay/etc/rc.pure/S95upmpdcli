@@ -1,0 +1,84 @@
+#!/bin/sh
+
+NAME=upmpdcli
+CONFFILE=/etc/$NAME.conf
+PIDFILE=/var/run/$NAME.pid
+DAEMON_ARGS="-D -c $CONFFILE"
+
+
+start() {
+        printf "Starting $NAME: "
+	NAME=`hostname`_`ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`
+	sed -i "s/^friendlyname.*/friendlyname = $NAME/" /etc/upmpdcli.conf
+	mkdir -p /var/cache/upmpdcli/ohcreds
+test -f /var/cache/upmpdcli/ohcreds/credkey.pem || \
+echo "-----BEGIN RSA PRIVATE KEY-----
+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
+-----END RSA PRIVATE KEY-----" > /var/cache/upmpdcli/ohcreds/credkey.pem
+	/usr/bin/upmpdcli $DAEMON_ARGS 
+    }
+stop() {
+    killall -9 upmpdcli
+}
+restart() {
+	stop
+	start
+}
+case "$1" in
+  start|stop|restart)
+	"$1"
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit $?

@@ -63,7 +63,7 @@ foreach(range(0, 1) as $rating){
 						 $server = $_SERVER['HTTP_HOST'];
 						 echo "&emsp;<a href=http://" ;
 						 echo $server ;
-						 echo "/tabs.php>Audio</a>";
+						 echo "/tabs.php>Return</a>";
 						?>
 					</span>
 				</td>
@@ -87,7 +87,7 @@ foreach(range(0, 1) as $rating){
 								<span class="title">Plugin selection:</span>
 								<div>
 									<form method="post" action="" onchange="showResult()">
-										<div>
+										<div class="row">
 											<label>
 												<input type="hidden" name="empty" value="1"/>
 												<input type="checkbox" name="rating[]" value="0" <?php echo $checked[0]; ?>>
@@ -97,8 +97,71 @@ foreach(range(0, 1) as $rating){
 												<input type="checkbox" name="rating[]" value="1" <?php echo $checked[1]; ?>>
 												Audio bitrate
 											</label>
+										</div>
+										<div class="row">
 											<input type="submit" id="editPluginsText" name="editPlugins" value="Save" class="selButtonText"/>
-
+										</div>
+									</form>
+								</div>
+							</div>
+						</div>
+						<div class='row'>
+							<div id='ipSet'>
+								<span class="title">Static IP:</span>
+								<div>
+                  <div class='row'>
+  							    <div class='cell'>			
+                    	<span class='warningText'>If you set the wrong address, you can fix it manually in sd card in the 'interfaces' file!</span>
+  									</div>
+                  </div>
+									<form method="post" action="" onkeydown="return event.key != 'Enter';">
+										<div>
+											<div class="row">
+								                <div class="cellLabel">IP: </div>
+								                <div class="cellField"><input type="text" id="ip1" name="address[]" maxlength="3"/></div>
+								                <div class="cellText">.</div>
+								                <div class="cellField"><input type="text" id="ip2" name="address[]" maxlength="3"/></div>
+								                <div class="cellText">.</div>
+								                <div class="cellField"><input type="text" id="ip3" name="address[]" maxlength="3"/></div>
+								                <div class="cellText">.</div>
+								                <div class="cellField"><input type="text" id="ip4" name="address[]" maxlength="3"/></div>
+								            </div>
+								            <div class="row">
+								                <div class="cellLabel">Mask: </div>
+								                <div class="cellField"><input type="text" id="mask1" name="address[]" maxlength="3"/></div>
+								                <div class="cellText">.</div>
+								                <div class="cellField"><input type="text" id="mask2" name="address[]" maxlength="3"/></div>
+								                <div class="cellText">.</div>
+								                <div class="cellField"><input type="text" id="mask3" name="address[]" maxlength="3"/></div>
+								                <div class="cellText">.</div>
+								                <div class="cellField"><input type="text" id="mask4" name="address[]" maxlength="3"/></div>
+								            </div>
+								            <div class="row">
+								                <div class="cellLabel">Gateway: </div>
+								                <div class="cellField"><input type="text" id="gateway1" name="address[]" maxlength="3"/></div>
+								                <div class="cellText">.</div>
+								                <div class="cellField"><input type="text" id="gateway2" name="address[]" maxlength="3"/></div>
+								                <div class="cellText">.</div>
+								                <div class="cellField"><input type="text" id="gateway3" name="address[]" maxlength="3"/></div>
+								                <div class="cellText">.</div>
+								                <div class="cellField"><input type="text" id="gateway4" name="address[]" maxlength="3"/></div>
+								            </div>
+								            <!--<div class="row">
+								                <div class="cellLabel">DNS: </div>
+								                <div class="cellField"><input type="text" id="dns1" name="address[]" maxlength="3"/></div>
+								                <div class="cellText">.</div>
+								                <div class="cellField"><input type="text" id="dns2" name="address[]" maxlength="3"/></div>
+								                <div class="cellText">.</div>
+								                <div class="cellField"><input type="text" id="dns3" name="address[]" maxlength="3"/></div>
+								                <div class="cellText">.</div>
+								                <div class="cellField"><input type="text" id="dns4" name="address[]" maxlength="3"/></div>
+								            </div>-->
+								            <div class="row">
+								            	<div class="cell"></div>
+								                <div class="cell"><input type="submit" id="removeIP" name="removeIP" value="Remove" class="selButtonText"/></div>
+								                <div class="cell"><input type="submit" id="editIP" name="editIP" value="Save" class="selButtonText"/></div>
+								                <div class="cell"><input type="submit" id="rebootIP" name="rebootIP" value="Reboot" class="selButtonText"/></div>
+								            </div>
 										</div>
 									</form>
 								</div>
@@ -132,10 +195,11 @@ foreach(range(0, 1) as $rating){
 function showResult()
 {
 
-document.getElementByName("resetButton");
+//document.getElementByName("resetButton");
 
 }
 </script>
+
 <?php
 	if($_POST['editPlugins']){
 		//$values = array();
@@ -157,9 +221,109 @@ document.getElementByName("resetButton");
 		} else {
 			{`echo 1 > /sys/class/gpio/gpio113/value ;
 			dd if=/dev/zero of=/dev/mmcblk1 bs=1M count=10 ;
-			reboot ; ` ;  };
+			sync && reboot ;
+			`;};
 			echo '<script type="text/javascript">updatePage();</script>';
 			echo '<script type="text/javascript">setTimeout(function() {window.location = window.location.href; }, 15000);</script>';
 		};
 	}
+
+	
+
+	if (isset($_POST['removeIP'])) {
+		$orderedItems = "auto lo\niface lo inet loopback\n\nauto eth0\n\n###### for DHCP ############\niface eth0 inet manual\n    pre-up /sbin/udhcpc -t 10 -q\n\n###### for static ip #######\n#iface eth0 inet static\n" . PHP_EOL;
+    $orderedItems .= "#    address 192.168.1.22\n#     netmask 255.255.255.0\n#     gateway 192.168.1.1\n#"; //     dns 0.0.0.0";
+    $fp = fopen('/boot/interfaces', 'w');
+		fwrite($fp, $orderedItems);
+		fclose($fp);
+    } else if (isset($_POST['editIP'])) {
+    	$orderedItems = "auto lo\niface lo inet loopback\n\nauto eth0\n\n###### for DHCP ############\n#iface eth0 inet manual\n#    pre-up /sbin/udhcpc -t 10 -q\n\n###### for static ip #######\niface eth0 inet static\n" . PHP_EOL;
+			$address = $_POST['address'];
+			for ($i = 0; $i < count($address); $i++) {
+				$ant = $address[$i];
+				if ($ant == ''){
+					$ant = 0;
+				}
+				if ($i == 0){
+					$orderedItems .= "    address ";
+				} else if ($i == 4){
+					$orderedItems .= "    netmask ";
+				} else if ($i == 8){
+					$orderedItems .= "    gateway ";
+				} 
+				//else if($i == 12){
+					// $orderedItems .= "    dns ";
+				// }
+				if (($i+1) % 4 == 0) {
+					$orderedItems .= "$ant\n";
+				} else {
+					$orderedItems .= "$ant.";
+				}
+			} 
+			$fp = fopen('/boot/interfaces', 'w');
+			fwrite($fp, $orderedItems);
+			fclose($fp);
+		}  else if (isset($_POST['rebootIP'])) { 
+			
+			echo '<script type="text/javascript">updatePage();</script>';
+			echo '<script type="text/javascript">setTimeout(function() {getUpdateOutput(); }, 12000);</script>';
+	  	exec ('/opt/reboot.sh' . '>/dev/null &');
+		}
 ?>
+
+<?php
+   	$text = file_get_contents('/boot/interfaces');
+	$text = explode("\n",$text);
+	$output = array();
+	foreach($text as $line)
+	{  
+	    $output[] = $line;
+	}
+?>
+
+<script type="text/javascript">
+    var data = '<?php echo(json_encode($output)); ?>';
+    var nameArr = data.replace(/['"]+/g, '').split(',');
+    for (var i = 0; i < nameArr.length; i++) {
+    	var b = [];
+    	var myVar;
+    	var app = null;
+    	if (nameArr[i].includes("address")){
+    		b = nameArr[i].split(/[ ]+/).pop().split('.').map(function(item) {
+			    return parseInt(item, 10);
+			});
+			app ="ip"
+    	} else if (nameArr[i].includes("netmask")){
+    		b = nameArr[i].split(/[ ]+/).pop().split('.').map(function(item) {
+			    return parseInt(item, 10);
+			});
+			app ="mask"
+    	} else if (nameArr[i].includes("gateway")){
+    		b = nameArr[i].split(/[ ]+/).pop().split('.').map(function(item) {
+			    return parseInt(item, 10);
+			});
+			app ="gateway"
+    	// } else if (nameArr[i].includes("dns")){
+    		// b = nameArr[i].split(/[ ]+/).pop().split('.').map(function(item) {
+			    // return parseInt(item, 10);
+			// });
+			// app ="dns"
+    	}
+    	if (app != null){
+    		if (nameArr[i].startsWith('#')){
+    			for (var k = 0; k < 4; k++) {
+					myVar = app + (k+1).toString();
+					document.getElementById(myVar).value="";
+				}
+    		} else {
+    			for (var k = 0; k < 4; k++) {
+					myVar = app + (k+1).toString();
+					document.getElementById(myVar).value=b[k];
+				}
+    		}
+    		
+    	}
+    	
+
+	}
+</script>

@@ -1,6 +1,8 @@
 <?php
+$update = 0;
 include 'variables.php';
 ?>
+<script src="javascript.js"></script>
 <script type="text/javascript">
 
 	var audioDataDisplay = "<?php echo $audioDataDisplay; ?>";
@@ -11,37 +13,38 @@ include 'variables.php';
 	function getAudioData(path) {
 
 		var outputSelectedElement = document.getElementsByClassName("unselOutputText");
-		var outputSelectedText = outputSelectedElement[0].innerText;
-
-		var xhr = new XMLHttpRequest();
-		xhr.onreadystatechange = function() {
-			if (xhr.readyState == 4) {
-				if (xhr.status == 200) {
-					var rawAudioData = xhr.responseText;
-					audioDataToSplit = rawAudioData.replace(/(\r\n|\n|\r)/gm, " , ");
-					formatAudioData();
-				} else {
-					console.log('error getting data');
+		if (outputSelectedElement.length > 0){
+			var outputSelectedText = outputSelectedElement[0].innerText;
+			var xhr = new XMLHttpRequest();
+			xhr.onreadystatechange = function() {
+				if (xhr.readyState == 4) {
+					if (xhr.status == 200) {
+						var rawAudioData = xhr.responseText;
+						audioDataToSplit = rawAudioData.replace(/(\r\n|\n|\r)/gm, " , ");
+						formatAudioData();
+					} else {
+						console.log('error getting data');
+					}
 				}
-			}
-		};
+			};
 
-		xhr.open("POST", path, true);
-		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-		if (outputSelectedText.substring(0,3) == 'I2S'){
-			xhr.send('interface=I2S');
-		} else if ( outputSelectedText == 'USB' ) {
-			xhr.send('interface=USB');
-		} else if ( outputSelectedText == 'SPDIF' ) {
-			xhr.send('interface=SPDIF');
+			xhr.open("POST", path, true);
+			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+			if (outputSelectedText.substring(0,3) == 'I2S'){
+				xhr.send('interface=I2S');
+			} else if ( outputSelectedText == 'USB' ) {
+				xhr.send('interface=USB');
+			} else if ( outputSelectedText == 'SPDIF' ) {
+				xhr.send('interface=SPDIF');
+			}
 		}
 	}
 
 	function UpdateFireBox(){
-		getAudioData("getMusicFormat.php");
-		setTimeout(function() {
-		UpdateFireBox();
-		}, 2000)
+			getAudioData("getMusicFormat.php");
+			setTimeout(function() {
+			UpdateFireBox();
+			}, 2000)
     }
 
 	function formatAudioData(){
@@ -58,7 +61,6 @@ include 'variables.php';
 					} else {
 						finalAudioString.push(srSplitText[1]);
 					}
-
 				}
 				if (bitSplitText.length > 1){
 					if( bitSplitText[0] == 'DSD' ){
@@ -74,14 +76,12 @@ include 'variables.php';
 				if (rebootButtonDisplay==0){
 					document.getElementById('sign').getElementsByTagName('span')[0].style.setProperty('padding-left', 10);
 				}
-
 				para.style.setProperty('display', audioDataDisplay);
 			} else {
 				para.style.setProperty('display', audioDataDisplay);
 				if (rebootButtonDisplay==0){
 					document.getElementById('sign').getElementsByTagName('span')[0].style.setProperty('padding-left', 0);
 				}
-
 			}
 		} else {
 			para.style.setProperty('display', audioDataDisplay);
@@ -98,28 +98,38 @@ include 'variables.php';
 	}
 
 	function updatePageReboot() {
-	document.getElementById("preloadBack").style.display="block";
-	document.getElementById("clickDisabler").style.display="block";
-	document.getElementById("mainContent").style.webkitFilter = "blur(10px)";
-}
+		document.getElementById("preloadBack").style.display="block";
+		document.getElementById("clickDisabler").style.display="block";
+		document.getElementById("mainContent").style.webkitFilter = "blur(10px)";
+	}
 
 	async function removeday(e) {
     e.preventDefault();
-	updatePageReboot();
-	setTimeout(function() {window.location = window.location.href; }, 20000);
-    await fetch('?reboot=1');
+		updatePageReboot();
+		setTimeout(function() {getUpdateOutput(); }, 3000);
+    // await fetch('?reboot=1');
 	}
 
 	function launchrebootButtonDisplayDisplay(){
-
-		but = document.createElement("a");
+    form = document.createElement("form");
+		form.method = "post";
+		// form.action = " ";
+		// form.setAttribute("onSubmit", "event.preventDefault()");
+		form.style.cssText = `
+			display: table;
+    	height: 100%;
+    	margin-block-end: 0em;
+		`;
+		but = document.createElement("input");
 		but.id = 'rebootButtonDisplay';
 		but.name="resButton";
-		but.href="";
-		but.innerHTML="Pure";
-		but.onclick=removeday;
+		but.type = "submit";
+		but.value = "Pure";
+		// but.innerHTML="Pure";
+		// but.onclick=removeday;
 		but.style.cssText = `
 			cursor: pointer;
+			border: 0;
 			display: table-cell;
 			margin: 0 0 0 -3px;
 			height: 100%;
@@ -132,20 +142,28 @@ include 'variables.php';
 		sign = document.getElementById("sign");
 		document.getElementById("sign").children[0].style.float='left';
 		signSpan = sign.getElementsByTagName('span')[0];
-		signSpan.parentElement.replaceChild(but, signSpan);
-
-
+		form.appendChild(but);
+		signSpan.parentElement.replaceChild(form, signSpan);
 	}
+
 	if (audioDataDisplay=="table-cell"){
 		document.addEventListener("DOMContentLoaded", function() {launchAudioDataDisplay();});
 	}
+
 	if (rebootButtonDisplay=="table-cell"){
 		document.addEventListener("DOMContentLoaded", function() {launchrebootButtonDisplayDisplay();});
 	}
+
 </script>
  <?php
 
-  if (isset($_GET['reboot'])) {
-		`sync && reboot` ;
-	  }
+  // if (isset($_GET['reboot'])) {
+		// `sync && reboot` ;
+	//} else 
+	if (isset($_POST['resButton'])) {
+		echo '<script type="text/javascript">updatePage();</script>';
+		echo '<script type="text/javascript">setTimeout(function() {getUpdateOutput(); }, 12000);</script>';
+    exec ('/opt/reboot.sh' . '>/dev/null &');
+    // `reboot`;
+  };
 ?>

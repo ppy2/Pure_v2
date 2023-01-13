@@ -1,0 +1,24 @@
+#!/bin/sh
+
+start() {
+    printf "Starting NAA: "
+    /usr/sbin/networkaudiod > /dev/null 2>&1 &
+    renice -15 `pidof networkaudiod`
+    }
+stop() {
+    killall -9 networkaudiod
+}
+restart() {
+	stop
+	start
+}
+case "$1" in
+  start|stop|restart)
+	"$1"
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit $?

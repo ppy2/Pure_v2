@@ -1,0 +1,41 @@
+#!/bin/sh
+
+start() {
+    printf "Starting Tidal Connect: "
+    if grep -q +-I2SLR /etc/output
+    then
+    nohup /usr/bin/jackd -d alsa -r 192000 -P default  > /dev/null 2>&1 &
+    sed -i 's/^#--playback-device/--playback-device/g' /usr/bin/start_tc
+    sed -i 's/sudo -u pure/sudo -u root/g' /usr/bin/start_tc
+    else
+    sed -i 's/^--playback-device/#--playback-device/g' /usr/bin/start_tc
+    sed -i 's/sudo -u root/sudo -u pure/g' /usr/bin/start_tc
+    fi
+
+    renice 0 -u dbus
+    start-stop-daemon --start --quiet --background --exec /usr/bin/start_tc 
+
+
+sleep 0.5
+renice -15 `pidof tcon`
+
+}
+    
+stop() {
+    	killall -9 jackd tcon
+	renice 19 -u dbus
+}
+restart() {
+	stop
+	start
+}
+case "$1" in
+  start|stop|restart)
+	"$1"
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit $?

@@ -1,3 +1,34 @@
+function isOnline(no,yes){
+    var xhr = XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHttp');
+    xhr.onload = function(){
+        if(yes instanceof Function){
+            yes();
+        }
+    }
+    xhr.onerror = function(){
+        if(no instanceof Function){
+            no();
+        }
+    }
+    xhr.open("GET","../../tmp/done",true);
+    xhr.send();
+}
+
+function getUpdateOutput() {
+    var checkForSerer = setInterval(function() {
+      isOnline(
+        function(){
+          console.log("Server is offline");
+        },
+        function(){
+          console.log("Refresh page");
+          setTimeout(function(){window.location = window.location.href;}, 2000);
+          clearInterval(checkForSerer);
+        }
+      );
+      console.log("waiting for refresh");
+  }, 2000); }
+
 function updatePage () {
 	document.getElementById("preloadBack").style.display="block";
 	document.getElementById("clickDisabler").style.display="block";
@@ -75,18 +106,87 @@ function getCookie(cname) {
 function pageLoad() {
 	var audioTab = document.getElementById("audioTab");
 	var systemTab = document.getElementById("systemTab");
+	var ipSetCnt = document.getElementById("ipSet")
 	var tabSaved = getCookie( 'activeTab' );	
+
+	if (ipSetCnt!=null){
+		var ipSetCntChilds = ipSetCnt.getElementsByTagName("*");
+		var cells = [];
+		for (var i = 0; i < ipSetCntChilds.length; i++) {
+	        if (ipSetCntChilds[i].className == "cellField") {
+	            cells.push(ipSetCntChilds[i]);
+	        }        
+		};
+		var checkPos = 1;
+		var cellnum = 0;
+		var allowkey = false;
+		ipSetCnt.onkeydown = function(e) {
+	        var charCode = (e.which) ? e.which : e.keyCode
+	        if (charCode == 13 && charCode != 37 && charCode != 39 && charCode > 31 && ((charCode < 48 || charCode > 57) && (charCode < 96 || charCode > 105))){
+	    	    e.preventDefault();
+	    	    allowkey = false;
+	    	} else if (charCode == 37 || charCode == 39){
+	    	    allowkey = false;
+	        } else if (charCode==9){
+			    allowkey = false;
+	        } else {
+	    	    allowkey = true;
+	        }
+		}
+
+		ipSetCnt.onkeyup = function(e) {
+
+		var charCode = (e.which) ? e.which : e.keyCode
+		var target = e.srcElement || e.target;
+	    var maxLength = parseInt(target.attributes["maxlength"].value, 10);
+			if (allowkey == true){
+	    	    for(var i=0;i<cells.length;i++){
+			        if(cells[i].firstChild.getAttribute("id")==document.activeElement.getAttribute("id")){
+				        cellnum = i
+				    }
+				}
+				var myLength = cells[cellnum].firstChild.value.length;
+				if (myLength == 0){
+		    	    checkPos -= 1;
+		        } else {
+		    	    checkPos = myLength + 1;
+		        }
+		        if (myLength >= maxLength && cellnum < cells.length) {
+		  	        cellnum += 1;
+		  	        checkPos = 1;
+		            cells[cellnum].firstChild.focus();
+		        } else if (checkPos == 0 && cellnum > 0) {
+		            cellnum -= 1;
+		            cells[cellnum].firstChild.focus();
+		            checkPos += 1;
+		        }
+	        } 
+		}
+	}
+
+	
+
 	if ( tabSaved == 'audio' ){
-		audioTab.classList.add('active');
-		systemTab.classList.remove('active');
-		selAudioTab();
+		if (audioTab != null && systemTab != null){
+			audioTab.classList.add('active');
+			systemTab.classList.remove('active');
+			selAudioTab();
+		}
+		
 	} else if ( tabSaved == 'system' ){
-		systemTab.classList.add('active');
-		audioTab.classList.remove('active');
-		selSystemTab();
+		if (audioTab != null && systemTab != null){
+			audioTab.classList.remove('active');
+			systemTab.classList.add('active');
+			selAudioTab();
+		}
 	} else {
-		audioTab.classList.add('active');
+		if (audioTab != null){
+			audioTab.classList.add('active');
+		}
 		var protocolSel = document.getElementById("protocolSel");
 		protocolSel.style.display="table";
 	}
+
+	
 }
+

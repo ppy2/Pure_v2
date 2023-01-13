@@ -1,0 +1,25 @@
+#!/bin/sh
+
+start() {
+    printf "Starting mpd: "
+    sync
+    /usr/bin/mpd
+    renice -15 `pidof mpd`
+    }
+stop() {
+    killall -9 mpd
+}
+restart() {
+	stop
+	start
+}
+case "$1" in
+  start|stop|restart)
+	"$1"
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit $?

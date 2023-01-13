@@ -46,6 +46,33 @@ body {
 	box-shadow: 0px 0px 15px rgba(0,0,0,0.65), inset 0px 0px 220px rgba(0,0,0,0.45);
 }
 
+/* input:-internal-autofill-selected { */
+/*     background-color: rgb(0, 0, 0) !important; */
+/*     background-image: none !important; */
+/*     color: -internal-light-dark-color(white, black) !important; */
+/* } */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus
+input:-webkit-autofill, 
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus{
+  border-bottom: 1px dashed rgb(64 64 64) !important;
+  -webkit-text-fill-color: #d1d1d1;
+  -webkit-box-shadow: 0 0 0px 1000px transparent inset;
+  transition: background-color 5000s ease-in-out 0s;
+  /* background: -webkit-linear-gradient(top,  rgba(255,255,255,0) 0%,rgba(0,174,255,0.04) 50%,rgba(255,255,255,0) 51%,rgba(0,174,255,0.03) 100%);   */
+}
+
+/* input:-webkit-autofill, */
+/* input:-webkit-autofill:focus { */
+/*   transition: background-color 600000s 0s, color 600000s 0s; */
+/* } */
+
 #mainContent td{
 	padding: 0px;
 	margin: 0px;
@@ -112,7 +139,7 @@ body {
 	float: left;
 }
 
-#systemSel input#emmc, #systemSel input#sd, #systemSel input#wifi, #systemSel input#hostname, #systemSel input#update, #systemSel span.unselKernelText, #systemSel span.unselOutputText, #superuserSel input#eraseEmmc{
+#systemSel input#emmc, input#sd, #systemSel input#wifi, #systemSel input#hostname, #systemSel input#update, #systemSel span.unselKernelText, #systemSel span.unselOutputText, #superuserSel input#eraseEmmc{
 	text-shadow: 0px 2px 2px #1b1b1b;
 	font-size: inherit;
 	font-family: 'Roboto', 'Arial', sans-serif;
@@ -125,14 +152,9 @@ body {
 	padding: 10px 10px 0 0;
 }
 
-#systemSel input#emmc{
+#systemSel input#emmc, #systemSel input#sd{
 	padding: 10px 0 0 0 !important;
 }
-
-#systemSel input#sd{
-	padding: 10px 0 0 0 !important;
-}
-
 
 #systemSel input#fname{
 	background: none;
@@ -163,7 +185,7 @@ body {
 	box-shadow:0px 2px 3px -2px #1b1b1b;
 }
 
-#systemSel input#emmc:hover, #systemSel input#sd:hover, #systemSel input#update:hover {
+#systemSel input#emmc:hover, input#sd:hover, #systemSel input#update:hover {
 	text-shadow: 0px 2px 2px #1b1b1b;
 	margin: 0px 0px -1px 0;
 	border-bottom: 1px solid #fe8101;
@@ -232,7 +254,6 @@ input.unselButtonText {
 
 input.selButtonText {
 	color: #ff8100;
-	width: 100%;
     white-space: normal;
 	text-shadow: 0px 2px 1px #1b1b1b;
 	border: 0px;
@@ -240,12 +261,15 @@ input.selButtonText {
 	background: rgba(255, 255, 255, 0 );
 }
 
+#protocolSel input.selButtonText {
+	width: 100%;
+}
 
-#superuserSel input.selButtonText{
+
+#superuserSel input.selButtonText, span.warningText{
 	display: table-cell;
-	padding: 10px 0px;
-    width: 58px;
-    float: right;
+	padding: 10px 10px 10px 0;
+    min-width: fit-content;
 }
 
 #naaButton.unselButton {
@@ -414,7 +438,7 @@ a {
 	display: table-row;
 }
 
-#kernel, #output, #wifi, #hostname, #eMMC, #sd{
+#kernel, #output, #wifi, #hostname, #eMMC{
 	display: table-cell;
 	vertical-align: middle;
 	border-bottom: 1px solid #404040;
@@ -436,11 +460,6 @@ a {
 }
 
 #eMMC{
-	display: table-cell;
-	vertical-align: middle;
-}
-
-#sd{
 	display: table-cell;
 	vertical-align: middle;
 }
@@ -471,16 +490,52 @@ a {
 }
 
 .messagebox {
-position:fixed;
-background-color:#f6b26b;
-color:#f6b26b;
-border:3px solid #ffffff;
-font-family:'Voltaire', sans-serif;
-font-size:24px;
-width:180px;
-border-radius:1px;
-z-index:1;
-padding:10px;
+	position:fixed;
+	background-color:#f6b26b;
+	color:#f6b26b;
+	border:3px solid #ffffff;
+	font-family:'Voltaire', sans-serif;
+	font-size:24px;
+	width:180px;
+	border-radius:1px;
+	z-index:1;
+	padding:10px;
 }
+
+.form_input_{
+	display: table-cell;
+}
+
+.cellLabel {
+	display: table-cell;
+	width: 73px;
+	float: left;
+}
+
+#ipSet .cell, .cellText, .cellField  {
+	display: table-cell;
+	float: left;
+}
+
+#ipSet .row .cellField input {
+	width: 3em;
+	background: none;
+    border-width: 0px 0px 1px 0px;
+    border-bottom: 1px dashed rgb(64 64 64);
+    color: #d1d1d1;
+    text-shadow: 0px 2px 2px #1b1b1b;
+    font-size: 1em;
+    font-family: 'Roboto', 'Arial', sans-serif;
+}
+
+#retesIP, #editIP{
+	width: 50%;
+	float: left;
+	text-align: left;
+}
+
+#ipSet .row {
+	display: flex;
+} 
 
 

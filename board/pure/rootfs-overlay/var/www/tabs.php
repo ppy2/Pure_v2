@@ -17,7 +17,6 @@ if($valuesArray[0] == true){
 	$rebootButtonDisplay = "table-cell";
 }
 $filename = "/tmp/update/";
-include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 ?>
 </head>
 
@@ -147,7 +146,7 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 									</div>
 									<div class='cell'>
 										<?php
-										 $tf = '/etc/init.d/S90tidal';
+										 $tf = '/etc/init.d/S95tidal';
 										 if (file_exists($tf)) {
 										 echo '<input type="submit" name="tidalButton" value="" id="tidalButton" class="selButton"/><input type="submit" id="tidalText" name="tidalButton" value="Tidal Connect" class="selButtonText"/>';
 										 } else {
@@ -250,7 +249,7 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 									<div class='buttonSpacer'><input type="submit" name="sd" id="sd" value="eMMC to SD" /><br></div>
 								</form>
 								<?php
-								    function testfun()
+								function testfun()
 									{
 									$EMMC = `ls /dev/mmcblk1` ;
 									$ROOT = `grep mmcblk0 /proc/cmdline` ;
@@ -258,10 +257,12 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 									echo '<br><font color = "white">You don`t have built-in eMMC memory.</font>' ;
 									}
 									elseif (empty($ROOT)) { echo '<br><br><font color = "white">This system is already loaded from eMMC.</font>' ; }
-									else { echo '<script type="text/javascript">updatePage();</script>' ; `/opt/copytoemmc.sh` ; }
-									}
-
-									function testfun2()
+									else { echo '<script type="text/javascript">updatePage();</script>' ; 
+									echo '<script type="text/javascript">setTimeout(function() {window.location = window.location.href; }, 30000);</script>';
+									exec ('/opt/copytoemmc.sh' . '>/dev/null &'); 
+									 } ;
+									}	
+								function testfun2()
 									{
 									$ROOT = `grep mmcblk1 /proc/cmdline` ;
 									if (empty($ROOT)) { 
@@ -269,7 +270,7 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 									}
 									else { 
 									echo '<script type="text/javascript">updatePage();</script>' ; 
-									echo '<script type="text/javascript">setTimeout(function() {window.location = window.location.href; }, 90000);</script>';
+									echo '<script type="text/javascript">setTimeout(function() {window.location = window.location.href; }, 30000);</script>';
 									exec ('/opt/copytosd.sh' . '>/dev/null &');
 									 } ;
 									}
@@ -304,11 +305,11 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 	if(isset($_POST['naaButton'])){
 		{`/opt/mute.sh ;
 		killall -9 mpd upmpdcli raat_app shairport-sync squeezelite spotifyd librespot scream networkaudiod ;
-                /etc/rc.pure/S90aprenderer stop ;
-                rm /etc/init.d/S90* ;
-                /etc/rc.pure/S90tidal stop ;
-                cp /etc/rc.pure/S90naa /etc/init.d/ && sync ; 
-                /etc/rc.pure/S90naa start ;
+                /etc/rc.pure/S95aprenderer stop ;
+                rm /etc/init.d/S95* ;
+                /etc/rc.pure/S95tidal stop ;
+                cp /etc/rc.pure/S95naa /etc/init.d/ && sync ; 
+                /etc/rc.pure/S95naa start ;
                 /opt/unmute.sh` ;
                 }
     		echo '<script type="text/javascript">removeSelButtons();</script>';
@@ -318,11 +319,11 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 	} else if(isset($_POST['raatButton'])){ 
 		{`/opt/mute.sh ;
 		killall -9 networkaudiod mpd upmpdcli shairport-sync squeezelite spotifyd librespot scream raat_app;
-		/etc/rc.pure/S90aprenderer stop ;
-		rm /etc/init.d/S90* ;
-		/etc/rc.pure/S90tidal stop ;
-		cp /etc/rc.pure/S90roonready /etc/init.d/ && sync ; 
-		/etc/rc.pure/S90roonready start ;
+		/etc/rc.pure/S95aprenderer stop ;
+		rm /etc/init.d/S95* ;
+		/etc/rc.pure/S95tidal stop ;
+		cp /etc/rc.pure/S95roonready /etc/init.d/ && sync ; 
+		/etc/rc.pure/S95roonready start ;
 		/opt/unmute.sh` ;
 		}
 		echo '<script type="text/javascript">removeSelButtons();</script>';
@@ -331,11 +332,11 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 	} else if(isset($_POST['mpdButton'])){ 
                 {`/opt/mute.sh ;
 		killall -9 networkaudiod raat_app shairport-sync squeezelite spotifyd librespot scream mpd ; 
-    		/etc/rc.pure/S90aprenderer stop ;
-		rm /etc/init.d/S90* ;
-		/etc/rc.pure/S90tidal stop ;
-                cp /etc/rc.pure/S90mpd /etc/init.d/ ; cp /etc/rc.pure/S90upmpdcli /etc/init.d/ && sync ;
-                /etc/rc.pure/S90mpd start ; /etc/rc.pure/S90upmpdcli start ;
+    		/etc/rc.pure/S95aprenderer stop ;
+		rm /etc/init.d/S95* ;
+		/etc/rc.pure/S95tidal stop ;
+                cp /etc/rc.pure/S95mpd /etc/init.d/ ; cp /etc/rc.pure/S95upmpdcli /etc/init.d/ && sync ;
+                /etc/rc.pure/S95mpd start ; /etc/rc.pure/S95upmpdcli start ;
                 renice 0 -u upmpdcli ;
 		/opt/unmute.sh` ;
                 }
@@ -345,11 +346,11 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 	} else if(isset($_POST['aplayerButton'])){ 
                 {`/opt/mute.sh ;
 		killall -9 mpd upmpdcli raat_app networkaudiod shairport-sync squeezelite spotifyd librespot scream ; 
-		/etc/rc.pure/S90aprenderer stop ;
-		rm /etc/init.d/S90* ;
-		/etc/rc.pure/S90tidal stop ;
-                cp /etc/rc.pure/S90aprenderer /etc/init.d/ && sync ; 
-                /etc/init.d/S90aprenderer start ;
+		/etc/rc.pure/S95aprenderer stop ;
+		rm /etc/init.d/S95* ;
+		/etc/rc.pure/S95tidal stop ;
+                cp /etc/rc.pure/S95aprenderer /etc/init.d/ && sync ; 
+                /etc/init.d/S95aprenderer start ;
                 /opt/unmute.sh` ;
                 }
 		echo '<script type="text/javascript">removeSelButtons();</script>';
@@ -359,11 +360,11 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 	} else if(isset($_POST['airPlayButton'])){ 
 		{`/opt/mute.sh ;
 		killall -9 mpd upmpdcli raat_app networkaudiod squeezelite spotifyd librespot scream shairport-sync ; 
-		/etc/rc.pure/S90aprenderer stop ;
-		rm /etc/init.d/S90* ;
-		/etc/rc.pure/S90tidal stop ;
-		cp /etc/rc.pure/S90shairport-sync /etc/init.d/ && sync ; 
-		/etc/init.d/S90shairport-sync start ;
+		/etc/rc.pure/S95aprenderer stop ;
+		rm /etc/init.d/S95* ;
+		/etc/rc.pure/S95tidal stop ;
+		cp /etc/rc.pure/S95shairport-sync /etc/init.d/ && sync ; 
+		/etc/init.d/S95shairport-sync start ;
 		/opt/unmute.sh` ;
 		}
 		echo '<script type="text/javascript">removeSelButtons();</script>';
@@ -372,11 +373,11 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 	} else if(isset($_POST['lmsButton'])){ 
 		{`/opt/mute.sh ;
 		killall -9 mpd upmpdcli raat_app networkaudiod shairport-sync spotifyd librespot scream squeezelite ; 
-		/etc/rc.pure/S90aprenderer stop ;
-		rm /etc/init.d/S90* ;
-		/etc/rc.pure/S90tidal stop ;
-		cp /etc/rc.pure/S90squeezelite /etc/init.d/ && sync ; 
-		/etc/init.d/S90squeezelite start ;
+		/etc/rc.pure/S95aprenderer stop ;
+		rm /etc/init.d/S95* ;
+		/etc/rc.pure/S95tidal stop ;
+		cp /etc/rc.pure/S95squeezelite /etc/init.d/ && sync ; 
+		/etc/init.d/S95squeezelite start ;
 		/opt/unmute.sh` ;
 		}
 		echo '<script type="text/javascript">removeSelButtons();</script>';
@@ -385,11 +386,11 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 	} else if(isset($_POST['spotifyButton'])){ 
 		{`/opt/mute.sh ;
 		killall -9 mpd upmpdcli raat_app networkaudiod shairport-sync squeezelite scream spotifyd librespot ; 
-		/etc/rc.pure/S90aprenderer stop ;
-		rm /etc/init.d/S90* ;
-		/etc/rc.pure/S90tidal stop ;
-		cp /etc/rc.pure/S90spotify /etc/init.d/ && sync ; 
-		/etc/rc.pure/S90spotify start ;
+		/etc/rc.pure/S95aprenderer stop ;
+		rm /etc/init.d/S95* ;
+		/etc/rc.pure/S95tidal stop ;
+		cp /etc/rc.pure/S95spotify /etc/init.d/ && sync ; 
+		/etc/rc.pure/S95spotify start ;
 		/opt/unmute.sh` ;
 		}
 		echo '<script type="text/javascript">removeSelButtons();</script>';
@@ -398,10 +399,10 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 	} else if(isset($_POST['screamButton'])){ 
 		{`/opt/mute.sh ;
 		killall -9 mpd upmpdcli raat_app networkaudiod shairport-sync squeezelite spotifyd librespot scream ; 
-		/etc/rc.pure/S90aprenderer stop ;
-		rm /etc/init.d/S90* ;
-		/etc/rc.pure/S90tidal stop ;
-		cp /etc/rc.pure/S90scream /etc/init.d/ && sync ; 
+		/etc/rc.pure/S95aprenderer stop ;
+		rm /etc/init.d/S95* ;
+		/etc/rc.pure/S95tidal stop ;
+		cp /etc/rc.pure/S95scream /etc/init.d/ && sync ; 
 		nohup /usr/sbin/scream > /dev/null 2>&1 &
 		/opt/unmute.sh ` ; 
 		}
@@ -411,11 +412,11 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 	} else if(isset($_POST['tidalButton'])){ 
 		{`/opt/mute.sh ;
 		killall -9 mpd upmpdcli raat_app networkaudiod shairport-sync squeezelite spotifyd librespot scream; 
-		/etc/rc.pure/S90aprenderer stop ;
-		/etc/rc.pure/S90tidal stop ;
-		rm /etc/init.d/S90* ;
-		cp /etc/rc.pure/S90tidal /etc/init.d/ && sync ; 
-		/etc/rc.pure/S90tidal start ; 
+		/etc/rc.pure/S95aprenderer stop ;
+		/etc/rc.pure/S95tidal stop ;
+		rm /etc/init.d/S95* ;
+		cp /etc/rc.pure/S95tidal /etc/init.d/ && sync ; 
+		/etc/rc.pure/S95tidal start ; 
 		/opt/unmute.sh` ;
 		}
 		echo '<script type="text/javascript">removeSelButtons();</script>';
@@ -459,7 +460,7 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 		exec ( 'echo '.$name.' > /etc/hostname' );
                 exec ('/opt/reboot.sh' . '>/dev/null &');
 	} ; 
-	exec ('/opt/renice.sh' . '>/dev/null &') ;
+	
 ?>
 
 <script type="text/javascript">
@@ -471,6 +472,17 @@ function getUpdateOutput() {
     console.log("waiting for refresh");
     }, 1000); }
 </script>
+
+<?php
+include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
+?>
+
+
+
 </body>   
 <br>
 
+
+
+
+ 

@@ -1,0 +1,26 @@
+#!/bin/sh
+
+start() {
+    printf "Starting Spotify: "
+    NAME=`hostname`_`ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`
+    ls /dev/snd/pcm* && /usr/bin/librespot --autoplay --cache /tmp --cache-size-limit 50M --bitrate 320 --name $NAME --initial-volume 100 > /dev/null 2>&1 &
+    sleep 0.5
+    renice -15 `pidof librespot`
+    }
+stop() {
+    killall -9 librespot
+}
+restart() {
+	stop
+	start
+}
+case "$1" in
+  start|stop|restart)
+	"$1"
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit $?
