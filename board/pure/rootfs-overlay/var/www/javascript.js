@@ -66,6 +66,7 @@ function selAudioTab() {
 	audioTab.classList.add('active');
 	systemTab.classList.remove('active');
 	setCookie( 'activeTab', 'audio', 600 );
+	console.log("coockie audio saved")
 }
 
 function selSystemTab() {
@@ -78,6 +79,7 @@ function selSystemTab() {
 	systemTab.classList.add('active');
 	audioTab.classList.remove('active');
 	setCookie( 'activeTab', 'system', 600 );
+	console.log("coockie system saved")
 }
 
 function setCookie(cname, cvalue, exdays) {
@@ -177,7 +179,7 @@ function pageLoad() {
 		if (audioTab != null && systemTab != null){
 			audioTab.classList.remove('active');
 			systemTab.classList.add('active');
-			selAudioTab();
+			selSystemTab();
 		}
 	} else {
 		if (audioTab != null){

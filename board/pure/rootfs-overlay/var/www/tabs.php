@@ -1,10 +1,10 @@
+<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <title>Pure</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 <link type="text/css" rel="stylesheet" href="style.css">
-<script src="javascript.js"></script>
 <?php
 $update = 0;
 include 'variables.php';
@@ -17,7 +17,9 @@ if($valuesArray[0] == true){
 	$rebootButtonDisplay = "table-cell";
 }
 $filename = "/tmp/update/";
+
 ?>
+<script src="javascript.js"></script>
 </head>
 
 
@@ -32,7 +34,7 @@ $filename = "/tmp/update/";
 		</div>
 		<table id='mainContent' cellspacing="0" cellpadding="0">
 			<tr id='optionsTop' >
-				<td id='audioTab' onClick='selAudioTab()' >
+				<td id='audioTab' >
 					<span>Audio</span>
 				</td>
 				<td>
@@ -47,7 +49,7 @@ $filename = "/tmp/update/";
 				</td>
 				<td>
 				</td>
-				<td  id='systemTab' onClick='selSystemTab()'>
+				<td  id='systemTab'>
 					<span>System</span>
 				</td>
 			</tr>
@@ -243,7 +245,7 @@ $filename = "/tmp/update/";
 								<span class="warn title">Attention!</font></span>
 								<span>This command will format and destroy old data!</span><br>
 								<span>The D2-D5 leds indicates that copying is in progress.</span>
-								<form method="post">
+								<form method="post" id="memory_actions">
 									<div class='buttonSpacer'><input type="submit" name="emmc" id="emmc" value="SD to eMMC" /><br></div>
 									<div class='buttonSpacer'><value="     " /><br></div>
 									<div class='buttonSpacer'><input type="submit" name="sd" id="sd" value="eMMC to SD" /><br></div>
@@ -256,7 +258,7 @@ $filename = "/tmp/update/";
 									if (empty($EMMC)) { 
 									echo '<br><font color = "white">You don`t have built-in eMMC memory.</font>' ;
 									}
-									elseif (empty($ROOT)) { echo '<br><br><font color = "white">This system is already loaded from eMMC.</font>' ; }
+									elseif (empty($ROOT)) { echo '<br><span class="title">Your system is already loaded from eMMC.</span>' ; }
 									else { echo '<script type="text/javascript">updatePage();</script>' ; 
 									echo '<script type="text/javascript">setTimeout(function() {window.location = window.location.href; }, 30000);</script>';
 									exec ('/opt/copytoemmc.sh' . '>/dev/null &'); 
@@ -266,7 +268,7 @@ $filename = "/tmp/update/";
 									{
 									$ROOT = `grep mmcblk1 /proc/cmdline` ;
 									if (empty($ROOT)) { 
-									echo '<br><br><font color = "white">You have already booted from the SD. Boot from eMMC and install a blank SD to write it.</font>' ;
+									echo '<br><span class="title">You have already booted from the SD. Boot from eMMC and install a blank SD to write it.</span>' ;
 									}
 									else { 
 									echo '<script type="text/javascript">updatePage();</script>' ; 
@@ -471,13 +473,16 @@ function getUpdateOutput() {
     };
     console.log("waiting for refresh");
     }, 1000); }
+		
+	var audio_cell = document.getElementById("audioTab");
+  audio_cell.addEventListener('click', function () { selAudioTab() ; });
+	var system_cell = document.getElementById("systemTab");
+  system_cell.addEventListener('click', function () { selSystemTab(); });
 </script>
 
 <?php
 include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 ?>
-
-
 
 </body>   
 <br>
