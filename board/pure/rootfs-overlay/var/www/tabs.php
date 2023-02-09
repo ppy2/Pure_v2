@@ -486,7 +486,7 @@ include ($_SERVER['DOCUMENT_ROOT']."/var/www/plugins.php");
 
 </body>   
 <br>
-
+</html>
 
 
 
