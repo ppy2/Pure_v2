@@ -3,7 +3,7 @@
 start() {
     printf "Starting Spotify: "
     NAME=`hostname`_`ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`
-    ls /dev/snd/pcm* && /usr/bin/librespot --autoplay --cache /tmp --cache-size-limit 32M --bitrate 320 --name $NAME --initial-volume 100 > /dev/null 2>&1 &
+    ls /dev/snd/pcm* && /usr/bin/librespot --dither none --autoplay --disable-audio-cache --bitrate 320 --name $NAME > /dev/null 2>&1 &
     sleep 0.5
     renice -15 `pidof librespot`
     }
