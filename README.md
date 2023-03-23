@@ -10,7 +10,7 @@ parameters, you can refer to the official driver support page - http://bbb.ieero
 The launch is possible both from SD and from internal eMMC memory. When the system is fully booted, all LEDs will turn off.
 
 The firmware has standard user settings via the web interface http://pure.local \
-Shell access - root/root
+Shell access - root/root \
 Support for this firmware - https://t.me/pure_os
 
 ### Build firmware 
